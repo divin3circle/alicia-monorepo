@@ -10,6 +10,7 @@ import {
   Library,
   Store,
   Hexagon,
+  Plus,
 } from "lucide-react"
 
 import {
@@ -20,6 +21,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@workspace/ui/components/sidebar"
 
 const data = {
@@ -61,10 +63,27 @@ const data = {
       url: "/settings",
       icon: Settings,
     },
+  ],
+  projects: [
+    {
+      name: "The Midnight Adventure",
+      url: "/project/midnight-adventure",
+    },
+    {
+      name: "Galactic Quest: Episode 1",
+      url: "/project/galactic-quest",
+    },
+    {
+      name: "Magic Forest Mystery",
+      url: "/project/magic-forest",
+    },
   ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
+
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -93,6 +112,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <a href={item.url} className="font-semibold text-slate-600 hover:text-amber-600 transition-colors">
                     <item.icon className="size-4" />
                     <span>{item.title}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* My Projects Section */}
+        <SidebarGroup className="mt-4 border-t border-slate-500/10 pt-6">
+          <div className="px-2 mb-2 flex items-center">
+            {!isCollapsed ? (
+              <span className="text-[10px] uppercase font-black tracking-widest text-slate-400">My Projects</span>
+            ) : (
+              <Plus className="size-4 text-slate-400 mx-auto" />
+            )}
+          </div>
+          <SidebarMenu>
+            {data.projects.map((project) => (
+              <SidebarMenuItem key={project.name}>
+                <SidebarMenuButton asChild tooltip={project.name}>
+                  <a href={project.url} className="text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors group/item">
+                    <Library className="size-4 shrink-0 opacity-40 group-hover/item:opacity-100 transition-opacity" />
+                    <span className="truncate text-[13px]">{project.name}</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
