@@ -1,7 +1,9 @@
 import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google"
 
-import "@workspace/ui/globals.css"
+import "./globals.css"
+
 import { ThemeProvider } from "@/components/theme-provider"
+import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils";
 
 const robotoSlab = Roboto_Slab({subsets:['latin'],variable:'--font-serif'});
@@ -28,7 +30,11 @@ export default function RootLayout({
       className={cn("antialiased", fontSans.variable, fontMono.variable, "font-serif", robotoSlab.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

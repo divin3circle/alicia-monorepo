@@ -1,0 +1,20 @@
+/* StoryCoach — global styles, imports base design tokens from workspace UI */
+@import "../../../packages/ui/src/styles/globals.css";
+
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+}
+
+:root {
+  --radius: 1rem;
+  --accent: oklch(0.89 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.21 0.006 285.885); /* Specific Alicia Slate */
+  --amber-500: oklch(0.769 0.188 70.08); /* Alicia Amber */
+}
+
+.dark {
+  --background: oklch(0.125 0 0);
+  --accent: oklch(0.229 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+}
