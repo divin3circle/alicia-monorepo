@@ -5,10 +5,11 @@ import { Button } from "@workspace/ui/components/button"
 
 interface DashboardHeaderProps {
   userName?: string
+  photoURL?: string | null
   storiesSaved?: number
 }
 
-export function DashboardHeader({ userName = "Creator", storiesSaved = 12 }: DashboardHeaderProps) {
+export function DashboardHeader({ userName = "Creator", photoURL, storiesSaved = 12 }: DashboardHeaderProps) {
   return (
     <div className="flex items-start justify-between mb-8">
       {/* Left: Greeting */}
@@ -43,9 +44,19 @@ export function DashboardHeader({ userName = "Creator", storiesSaved = 12 }: Das
         <Button variant="ghost" size="icon-sm" className="text-slate-500 hover:text-slate-900">
           <Settings className="size-4" />
         </Button>
-        <div className="size-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-amber-500/25">
-          {userName.charAt(0).toUpperCase()}
-        </div>
+        {photoURL ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photoURL}
+            alt={userName}
+            referrerPolicy="no-referrer"
+            className="size-8 rounded-full object-cover shadow-md ring-2 ring-amber-500/30"
+          />
+        ) : (
+          <div className="size-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-amber-500/25">
+            {userName.charAt(0).toUpperCase()}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,17 +1,25 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { HeroStepper } from "@/components/dashboard/hero-stepper"
-import { QuickActions } from "@/components/dashboard/quick-actions"
-import { RecentCreations } from "@/components/dashboard/recent-creations"
+"use client";
+
+import React from "react";
+import { AppSidebar } from "@/components/app-sidebar";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { HeroStepper } from "@/components/dashboard/hero-stepper";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { RecentCreations } from "@/components/dashboard/recent-creations";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@workspace/ui/components/sidebar"
-import { Separator } from "@workspace/ui/components/separator"
+} from "@workspace/ui/components/sidebar";
+import { Separator } from "@workspace/ui/components/separator";
+import { useAuth } from "@/lib/auth-context";
+import { ProfileGuard } from "@/components/auth/profile-guard";
 
 export default function Page() {
+  const { user } = useAuth();
+
   return (
+    <ProfileGuard>
     <SidebarProvider
       style={
         {
@@ -36,12 +44,17 @@ export default function Page() {
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col p-6 lg:p-8 max-w-6xl mx-auto w-full">
-          <DashboardHeader userName="Creator" storiesSaved={12} />
+          <DashboardHeader
+            userName={user?.displayName ?? user?.email?.split("@")[0] ?? "Creator"}
+            photoURL={user?.photoURL}
+            storiesSaved={12}
+          />
           <HeroStepper />
           <QuickActions />
           <RecentCreations />
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+    </ProfileGuard>
+  );
 }

@@ -1,19 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronLeft, 
   ChevronRight, 
   Check, 
   Loader2, 
-  Sparkles, 
   Book, 
   Tv, 
   Heart,
   Baby,
   User,
-  Wand2
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -36,6 +35,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";
 import { FluidDropdown, DropdownItem } from "@/components/ui/fluid-dropdown";
+import { useAuth } from "@/lib/auth-context";
+import { saveUserProfile } from "@/lib/firestore";
 
 const STEPS = [
   { id: "basics", title: "The Basics", description: "Who is the young author?" },
@@ -73,6 +74,8 @@ const fadeInUp = {
 };
 
 export function OnboardingFlow() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -115,12 +118,32 @@ export function OnboardingFlow() {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast.error("Not signed in. Please log in again.");
+      router.replace("/login");
+      return;
+    }
+
     setIsSubmitting(true);
-    // Mimic Firebase save
-    await new Promise(r => setTimeout(r, 2000));
-    toast.success("Profile completed! Welcome to Alicia.");
-    setIsSubmitting(false);
-    window.location.href = "/dashboard";
+    try {
+      await saveUserProfile(user.uid, {
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        username: data.username,
+        age: data.age,
+        interests: data.interests,
+        favoriteShow: data.favoriteShow,
+        favoriteBook: data.favoriteBook,
+      });
+      toast.success("Profile completed! Welcome to Alicia 🎉");
+      router.replace("/dashboard");
+    } catch (err: any) {
+      console.error("Onboarding save failed:", err);
+      toast.error("Couldn't save your profile. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isStepValid = () => {
@@ -273,7 +296,7 @@ export function OnboardingFlow() {
                 <div className="space-y-8">
                   <div className="space-y-4">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      Favorite kid's show?
+                      Favorite kid&apos;s show?
                     </Label>
                     <FluidDropdown 
                       items={SHOW_OPTIONS} 
