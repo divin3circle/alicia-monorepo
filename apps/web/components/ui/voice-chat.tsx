@@ -3,7 +3,7 @@
 import { Mic, Volume2, VolumeX, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@workspace/ui/lib/utils";
 
 interface VoiceChatProps {
   onStart?: () => void;
@@ -41,8 +41,8 @@ export function VoiceChat({
   const [elapsed, setElapsed] = useState(0);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [waveformData, setWaveformData] = useState<number[]>(Array(32).fill(0));
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
-  const animationRef = useRef<number>();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const animationRef = useRef<number | undefined>(undefined);
   const elapsedRef = useRef(0);
 
   const remaining = maxDuration - elapsed;

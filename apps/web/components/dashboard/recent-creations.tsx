@@ -1,128 +1,153 @@
-"use client"
+"use client";
 
-import { Clock, ChevronDown } from "lucide-react"
-import { cn } from "@workspace/ui/lib/utils"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Clock, BookOpen, Plus } from "lucide-react";
+import { cn } from "@workspace/ui/lib/utils";
+import { getUserProjects, type StoryProject } from "@/lib/firestore";
+import { useAuth } from "@/lib/auth-context";
+import Image from "next/image";
 
-type StoryStatus = "Waiting Review" | "Being Edited" | "Revision" | "Approved"
+const PLACEHOLDER_BANNER =
+  "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/luxury-book-cover-for-kids-design-template-0183c75605e27e745ea2415db5d59b72_screen.jpg?ts=1692367693";
 
-interface Story {
-  id: string
-  title: string
-  status: StoryStatus
-  lastEdited: string
-  author: string
-  thumbnail: string
+function pagesDone(project: StoryProject): number {
+  return (project.pages ?? []).filter((p) => p.status === "done" || p.status === "reviewed").length;
 }
 
-const statusConfig: Record<StoryStatus, { color: string; dot: string }> = {
-  "Waiting Review": { color: "bg-pink-500/15 text-pink-600 dark:text-pink-400", dot: "bg-pink-500" },
-  "Being Edited":   { color: "bg-blue-500/15 text-blue-600 dark:text-blue-400",   dot: "bg-blue-500" },
-  "Revision":       { color: "bg-amber-500/15 text-amber-600 dark:text-amber-400", dot: "bg-amber-500" },
-  "Approved":       { color: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500" },
+function formatRelative(val: unknown): string {
+  if (!val) return "Just now";
+  let ms: number | null = null;
+  if (typeof val === "object" && val !== null && "toMillis" in val) {
+    ms = (val as { toMillis: () => number }).toMillis();
+  } else if (val instanceof Date) {
+    ms = val.getTime();
+  }
+  if (!ms) return "Just now";
+  const diff = Date.now() - ms;
+  if (diff < 60_000) return "Just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
-const sampleStories: Story[] = [
-  {
-    id: "1",
-    title: "The Dragon Who Was Afraid of Loud Noises",
-    status: "Waiting Review",
-    lastEdited: "5 min ago",
-    author: "Alex Kim",
-    thumbnail: "from-purple-400 to-blue-500",
-  },
-  {
-    id: "2",
-    title: "Luna and the Secret Garden of Stars",
-    status: "Being Edited",
-    lastEdited: "20 min ago",
-    author: "Jamie Lee",
-    thumbnail: "from-emerald-400 to-teal-500",
-  },
-  {
-    id: "3",
-    title: "Captain Pepper's Ocean Adventure",
-    status: "Revision",
-    lastEdited: "1 hour ago",
-    author: "Sam Rivera",
-    thumbnail: "from-amber-400 to-orange-500",
-  },
-  {
-    id: "4",
-    title: "The Robot Who Learned to Dream",
-    status: "Approved",
-    lastEdited: "Yesterday",
-    author: "Jordan Park",
-    thumbnail: "from-pink-400 to-rose-500",
-  },
-  {
-    id: "5",
-    title: "Mia's Adventures in the Enchanted Library",
-    status: "Being Edited",
-    lastEdited: "2 hours ago",
-    author: "Casey Chen",
-    thumbnail: "from-violet-400 to-purple-500",
-  },
-  {
-    id: "6",
-    title: "The Tiny Seed That Wanted to Touch the Sky",
-    status: "Approved",
-    lastEdited: "3 days ago",
-    author: "Dakota Mills",
-    thumbnail: "from-green-400 to-emerald-500",
-  },
-]
-
-function StoryCard({ story }: { story: Story }) {
-  const { color, dot } = statusConfig[story.status]
+function StoryCard({ project, onClick }: { project: StoryProject; onClick: () => void }) {
+  const done = pagesDone(project);
+  const pct = Math.round((done / 12) * 100);
 
   return (
-    <div className="group rounded-2xl border border-slate-500/10 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-md hover:border-slate-500/20 transition-all cursor-pointer">
-      {/* Thumbnail */}
-      <div className={cn("h-36 bg-gradient-to-br", story.thumbnail, "relative")}>
-        <div className="absolute inset-0 bg-black/10" />
-        {/* Status badge in corner */}
-        <div className="absolute top-3 left-3">
-          <span className={cn("flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm bg-white/90 dark:bg-slate-900/90", color)}>
-            <span className={cn("size-1.5 rounded-full", dot)} />
-            {story.status}
-          </span>
+    <div
+      onClick={onClick}
+      className="group rounded-2xl border border-slate-500/10 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-md hover:border-indigo-400/30 transition-all cursor-pointer"
+    >
+      {/* Banner */}
+      <div className="relative h-36 overflow-hidden">
+        <Image
+          src={project.bannerUrl ?? PLACEHOLDER_BANNER}
+          alt={project.title}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        {/* Progress pill */}
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-[11px] font-bold text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
+          <BookOpen className="size-3" />
+          {done}/12 pages
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
         <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 leading-snug mb-2 line-clamp-2">
-          {story.title}
+          {project.title}
         </h3>
+
+        {/* Progress bar */}
+        <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-3 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-500 transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+
         <div className="flex items-center gap-2 text-xs text-slate-400">
-          <Clock className="size-3" />
-          <span>Edited {story.lastEdited}</span>
-          <span>·</span>
-          <div className="size-4 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-[8px] font-bold text-white">
-            {story.author.charAt(0)}
-          </div>
-          <span>{story.author}</span>
+          <Clock className="size-3 shrink-0" />
+          <span>Edited {formatRelative(project.updatedAt)}</span>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+function EmptyState({ onNew }: { onNew: () => void }) {
+  return (
+    <div className="col-span-full flex flex-col items-center justify-center py-16 gap-4 text-center">
+      <div className="size-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+        <BookOpen className="size-8 text-indigo-400" />
+      </div>
+      <div>
+        <p className="font-bold text-slate-800 dark:text-slate-200">No stories yet</p>
+        <p className="text-sm text-slate-400 mt-1">Start your first adventure!</p>
+      </div>
+      <button
+        onClick={onNew}
+        className="flex items-center gap-2 text-sm font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+      >
+        <Plus className="size-4" />
+        New Story
+      </button>
+    </div>
+  );
 }
 
 export function RecentCreations() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [projects, setProjects] = useState<StoryProject[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    getUserProjects(user.uid)
+      .then(setProjects)
+      .finally(() => setLoading(false));
+  }, [user]);
+
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-lg font-black text-slate-900 dark:text-slate-100">Recent Creations</h2>
-        <button className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors">
-          Last viewed by me <ChevronDown className="size-3" />
-        </button>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-black text-slate-900 dark:text-slate-100">
+          My Stories
+        </h2>
+        {projects.length > 0 && (
+          <span className="text-xs text-slate-400">{projects.length} project{projects.length !== 1 ? "s" : ""}</span>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sampleStories.map((story) => (
-          <StoryCard key={story.id} story={story} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4", projects.length === 0 && "block")}>
+          {projects.length === 0 ? (
+            <EmptyState onNew={() => router.push("/creator/new")} />
+          ) : (
+            projects.map((p) => (
+              <StoryCard
+                key={p.id}
+                project={p}
+                onClick={() => router.push(`/creator/${p.id}`)}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
-  )
+  );
 }

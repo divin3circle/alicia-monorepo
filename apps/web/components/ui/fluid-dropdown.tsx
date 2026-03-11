@@ -6,7 +6,7 @@ import { ChevronDown, Shirt, Briefcase, Smartphone, Home, Layers, LucideIcon } f
 import { cn } from "@workspace/ui/lib/utils"
 
 // Custom hook for click outside detection
-function useClickAway(ref: React.RefObject<HTMLElement>, handler: (event: MouseEvent | TouchEvent) => void) {
+function useClickAway(ref: React.RefObject<HTMLElement | null>, handler: (event: MouseEvent | TouchEvent) => void) {
   React.useEffect(() => {
     const listener = (event: MouseEvent | TouchEvent) => {
       if (!ref.current || ref.current.contains(event.target as Node)) {

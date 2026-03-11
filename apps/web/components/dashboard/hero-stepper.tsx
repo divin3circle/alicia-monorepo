@@ -56,7 +56,7 @@ const steps = [
 export function HeroStepper() {
   const [activeStep, setActiveStep] = useState(0)
 
-  const step = steps[activeStep]
+  const step = steps[activeStep]!
 
   return (
     <div className="rounded-3xl border border-slate-500/10 bg-white dark:bg-slate-900 shadow-sm mb-8 overflow-hidden">

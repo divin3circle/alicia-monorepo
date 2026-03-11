@@ -3,13 +3,15 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCTYYkfGYKLl0Eff9EVJGMyWDaSjkb_B0E",
-  authDomain: "alicia-44394.firebaseapp.com",
-  projectId: "alicia-44394",
-  storageBucket: "alicia-44394.firebasestorage.app",
-  messagingSenderId: "19778147732",
-  appId: "1:19778147732:web:d4ca3efd2870c32c60ab81",
-  measurementId: "G-JDXBLFDY8D",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  ...(process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID && {
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  }),
 };
 
 // Prevent re-initialization in Next.js hot-module-replacement
