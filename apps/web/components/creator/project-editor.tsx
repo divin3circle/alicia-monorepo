@@ -1,108 +1,113 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft, MessageCircle } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { useCallback, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { ChevronLeft, MessageCircle } from "lucide-react"
+import { Button } from "@workspace/ui/components/button"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@workspace/ui/components/sheet";
+} from "@workspace/ui/components/sheet"
 
-import { getProject, type AiMessage, type StoryProject } from "@/lib/firestore";
-import { PageNavigator } from "@/components/creator/page-navigator";
-import { EditorArea } from "@/components/creator/editor-area";
-import { AiChatPanel } from "@/components/creator/ai-chat-panel";
-import { PageReview } from "@/components/creator/page-review";
-import { VoiceSessionModal } from "@/components/creator/voice-session";
+import { getProject, type AiMessage, type StoryProject } from "@/lib/firestore"
+import { PageNavigator } from "@/components/creator/page-navigator"
+import { EditorArea } from "@/components/creator/editor-area"
+import { AiChatPanel } from "@/components/creator/ai-chat-panel"
+import { PageReview } from "@/components/creator/page-review"
+import { VoiceSessionModal } from "@/components/creator/voice-session"
 
 interface ProjectEditorProps {
-  projectId: string;
+  projectId: string
 }
 
 export function ProjectEditor({ projectId }: ProjectEditorProps) {
-  const router = useRouter();
-  const [project, setProject] = useState<StoryProject | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showReview, setShowReview] = useState(false);
-  const [showVoice, setShowVoice] = useState(false);
-  const [chatHistory, setChatHistory] = useState<AiMessage[]>([]);
+  const router = useRouter()
+  const [project, setProject] = useState<StoryProject | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [showReview, setShowReview] = useState(false)
+  const [showVoice, setShowVoice] = useState(false)
+  const [chatHistory, setChatHistory] = useState<AiMessage[]>([])
 
   const fetchProject = useCallback(async () => {
-    const p = await getProject(projectId);
+    const p = await getProject(projectId)
     if (p) {
-      setProject(p);
-      setCurrentPage(p.currentPage ?? 1);
-      setChatHistory(p.chatHistory ?? []);
+      setProject(p)
+      setCurrentPage(p.currentPage ?? 1)
+      setChatHistory(p.chatHistory ?? [])
     }
-    setLoading(false);
-  }, [projectId]);
+    setLoading(false)
+  }, [projectId])
 
   useEffect(() => {
-    fetchProject();
-  }, [fetchProject]);
+    fetchProject()
+  }, [fetchProject])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-muted-foreground text-sm animate-pulse">
+      <div className="flex min-h-screen animate-pulse items-center justify-center text-sm text-muted-foreground">
         Loading your story…
       </div>
-    );
+    )
   }
 
   if (!project) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Project not found.</p>
         <Button variant="outline" onClick={() => router.push("/dashboard")}>
           Back to Dashboard
         </Button>
       </div>
-    );
+    )
   }
 
-  const pages = project.pages ?? [];
-  const currentPageData = pages.find((p) => p.pageNumber === currentPage);
+  const pages = project.pages ?? []
+  const currentPageData = pages.find((p) => p.pageNumber === currentPage)
 
-  // The highest page the user has touched (draft / done / reviewed)
   const highestTouched = pages.reduce(
-    (max, p) => (p.status !== "empty" && p.pageNumber > max ? p.pageNumber : max),
+    (max, p) =>
+      p.status !== "empty" && p.pageNumber > max ? p.pageNumber : max,
     0
-  );
-  // Allow navigating up to the next unwritten page (but not beyond)
-  const maxUnlockedPage = Math.min(highestTouched + 1, 12);
+  )
+  const maxUnlockedPage = Math.min(highestTouched + 1, 12)
+
+  /** Feedback review + voice coaching appear every 3rd page */
+  const isMilestonePage = (page: number) => page % 3 === 0
 
   const handlePageDone = async () => {
-    // Refresh project to get latest status
-    const refreshed = await getProject(projectId);
-    if (refreshed) setProject(refreshed);
-    setShowReview(true);
-  };
+    const refreshed = await getProject(projectId)
+    if (refreshed) setProject(refreshed)
+
+    if (isMilestonePage(currentPage)) {
+      // Pages 3, 6, 9, 12 — show Gibbs review + optional voice
+      setShowReview(true)
+    } else {
+      // All other pages — silently advance
+      if (currentPage < 12) {
+        setCurrentPage(currentPage + 1)
+      }
+    }
+  }
 
   const handleReviewContinue = async () => {
-    setShowReview(false);
+    setShowReview(false)
     if (currentPage < 12) {
-      const next = currentPage + 1;
-      setCurrentPage(next);
-      const refreshed = await getProject(projectId);
-      if (refreshed) setProject(refreshed);
+      setCurrentPage(currentPage + 1)
+      const refreshed = await getProject(projectId)
+      if (refreshed) setProject(refreshed)
     } else {
-      router.push(`/dashboard`);
+      // All 12 pages done — go to illustration generation
+      router.push(`/creator/${projectId}/illustrations`)
     }
-  };
-
-  const pageHistory = chatHistory.filter(
-    (m) => m.pageContext === currentPage || m.pageContext === null
-  );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-      {/* ── Top bar ── */}
-      <header className="flex items-center gap-3 px-4 h-14 border-b border-border/50 shrink-0 bg-card/70 backdrop-blur-sm z-30">
+    <div className="flex h-screen flex-col overflow-hidden px-2 py-2">
+      <header className="z-30 flex h-14 shrink-0 items-center gap-3 px-4 backdrop-blur-sm">
         <Button
           variant="ghost"
           size="icon"
@@ -110,8 +115,8 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
         >
           <ChevronLeft className="size-5" />
         </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-semibold text-sm truncate">{project.title}</h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-sm font-semibold">{project.title}</h1>
           <p className="text-xs text-muted-foreground">
             Page {currentPage} of 12
           </p>
@@ -131,14 +136,37 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
             <AiChatPanel
               projectId={projectId}
               pageNumber={currentPage}
-              history={pageHistory}
-              onNewMessages={setChatHistory}
+              history={chatHistory}
+              onAppendMessages={(msgs) =>
+                setChatHistory((prev) => [...prev, ...msgs])
+              }
+              storyContext={{
+                title: project.title,
+                objective: project.objective,
+                setting: project.setting,
+                characters: project.characters,
+                pages: pages
+                  .filter(
+                    (p) => p.status !== "empty" && p.pageNumber <= currentPage
+                  )
+                  .map((p) => ({
+                    pageNumber: p.pageNumber,
+                    content: p.content,
+                  })),
+                recentFeedback: (project.pageFeedback ?? [])
+                  .slice(-3)
+                  .map((f) => ({
+                    pageNumber: f.pageNumber,
+                    whatWentGreat: f.whatWentGreat,
+                    tryNextTime: f.tryNextTime,
+                  })),
+              }}
             />
           </SheetContent>
         </Sheet>
       </header>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <PageNavigator
           pages={pages}
           currentPage={currentPage}
@@ -146,21 +174,43 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
           onPageSelect={setCurrentPage}
         />
 
-        <main className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <EditorArea
             projectId={projectId}
             pageNumber={currentPage}
             initialContent={currentPageData?.content ?? ""}
             initialStatus={currentPageData?.status ?? "draft"}
+            isMilestone={isMilestonePage(currentPage)}
+            isLastPage={currentPage === 12}
             onDone={handlePageDone}
           />
         </main>
-        <aside className="hidden lg:flex flex-col w-[320px] shrink-0 border-l border-border/50 bg-card/60">
+        <aside className="hidden w-[380px] shrink-0 flex-col overflow-hidden rounded-xl border border-border/50 bg-card/60 lg:flex">
           <AiChatPanel
             projectId={projectId}
             pageNumber={currentPage}
-            history={pageHistory}
-            onNewMessages={setChatHistory}
+            history={chatHistory}
+            onAppendMessages={(msgs) =>
+              setChatHistory((prev) => [...prev, ...msgs])
+            }
+            storyContext={{
+              title: project.title,
+              objective: project.objective,
+              setting: project.setting,
+              characters: project.characters,
+              pages: pages
+                .filter(
+                  (p) => p.status !== "empty" && p.pageNumber <= currentPage
+                )
+                .map((p) => ({ pageNumber: p.pageNumber, content: p.content })),
+              recentFeedback: (project.pageFeedback ?? [])
+                .slice(-3)
+                .map((f) => ({
+                  pageNumber: f.pageNumber,
+                  whatWentGreat: f.whatWentGreat,
+                  tryNextTime: f.tryNextTime,
+                })),
+            }}
           />
         </aside>
       </div>
@@ -169,9 +219,13 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
           projectId={projectId}
           pageNumber={currentPage}
           totalPages={12}
+          pageContent={currentPageData?.content ?? ""}
+          storyTitle={project.title}
+          storyObjective={project.objective}
+          storySetting={project.setting}
           onStartVoice={() => {
-            setShowReview(false);
-            setShowVoice(true);
+            setShowReview(false)
+            setShowVoice(true)
           }}
           onContinue={handleReviewContinue}
         />
@@ -181,11 +235,11 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
         <VoiceSessionModal
           pageNumber={currentPage}
           onEnd={() => {
-            setShowVoice(false);
-            setShowReview(true);
+            setShowVoice(false)
+            setShowReview(true)
           }}
         />
       )}
     </div>
-  );
+  )
 }

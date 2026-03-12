@@ -12,29 +12,29 @@ import {
   orderBy,
   serverTimestamp,
   Timestamp,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+} from "firebase/firestore"
+import { db } from "@/lib/firebase"
 
 /** Shape of a user document stored in Firestore `users/{uid}` */
 export interface UserProfile {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
+  uid: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
   /** Set by the onboarding flow — child's preferred name / username */
-  username: string;
+  username: string
   /** Age selected during onboarding */
-  age: string;
+  age: string
   /** Up to 5 interest tags chosen during onboarding */
-  interests: string[];
+  interests: string[]
   /** Favourite show chosen during onboarding */
-  favoriteShow: string;
+  favoriteShow: string
   /** Favourite book chosen during onboarding */
-  favoriteBook: string;
+  favoriteBook: string
   /** True once the 3-step onboarding wizard is completed */
-  onboarded: boolean;
-  createdAt: ReturnType<typeof serverTimestamp> | null;
-  updatedAt: ReturnType<typeof serverTimestamp> | null;
+  onboarded: boolean
+  createdAt: ReturnType<typeof serverTimestamp> | null
+  updatedAt: ReturnType<typeof serverTimestamp> | null
 }
 
 /**
@@ -42,9 +42,9 @@ export interface UserProfile {
  * Returns `null` when the document does not exist yet (not yet onboarded).
  */
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  return snap.exists() ? (snap.data() as UserProfile) : null;
+  const ref = doc(db, "users", uid)
+  const snap = await getDoc(ref)
+  return snap.exists() ? (snap.data() as UserProfile) : null
 }
 
 /**
@@ -55,7 +55,7 @@ export async function saveUserProfile(
   uid: string,
   profile: Omit<UserProfile, "uid" | "createdAt" | "updatedAt" | "onboarded">
 ): Promise<void> {
-  const ref = doc(db, "users", uid);
+  const ref = doc(db, "users", uid)
   // Use merge so that a partial re-save doesn't wipe fields
   await setDoc(
     ref,
@@ -67,96 +67,107 @@ export async function saveUserProfile(
       createdAt: serverTimestamp(), // only written if the field is absent (merge)
     },
     { merge: true }
-  );
+  )
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 /** A character described inside a story project. */
 export interface Character {
-  name: string;
-  description: string;
+  name: string
+  description: string
 }
 
 /** A single page in the 12-page story. */
 export interface PageEntry {
-  pageNumber: number; // 1–12
-  content: string;
-  status: "empty" | "draft" | "done" | "reviewed";
-  wordCount: number;
-  updatedAt: Timestamp | null;
+  pageNumber: number // 1–12
+  content: string
+  status: "empty" | "draft" | "done" | "reviewed"
+  wordCount: number
+  updatedAt: Timestamp | null
+  /** URL of the AI-generated illustration for this page (set after book completion) */
+  imageUrl?: string
 }
 
 /** Gibbs-style coaching feedback for a finished page. */
 export interface PageFeedback {
-  pageNumber: number;
-  whatYouWrote: string;
-  whatWentGreat: string;
-  tryNextTime: string;
-  skills: string[];
-  createdAt: Timestamp | null;
+  pageNumber: number
+  whatYouWrote: string
+  whatWentGreat: string
+  tryNextTime: string
+  skills: string[]
+  createdAt: Timestamp | null
 }
 
 /** A single message in the in-page AI chat. */
 export interface AiMessage {
-  role: "user" | "assistant";
-  content: string;
-  pageContext: number | null;
-  createdAt: Timestamp | null;
+  role: "user" | "assistant"
+  content: string
+  pageContext: number | null
+  createdAt: Timestamp | null
 }
 
 /** A recorded voice session with Alicia. */
 export interface VoiceSession {
-  pageNumber: number;
-  transcript: string;
-  durationSeconds: number;
-  createdAt: Timestamp | null;
+  pageNumber: number
+  transcript: string
+  durationSeconds: number
+  createdAt: Timestamp | null
 }
 
 /**
  * Shape of a project document stored in Firestore `projects/{projectId}`.
  */
 export interface StoryProject {
-  id: string;
+  id: string
   /** ID of the Firebase Auth user who owns this project */
-  userId: string;
+  userId: string
   /** Display name of the owner at creation time */
-  userName: string | null;
+  userName: string | null
   /** Photo URL of the owner at creation time */
-  userPhotoURL: string | null;
+  userPhotoURL: string | null
   /** Human-readable story title */
-  title: string;
+  title: string
   /** Main characters and their descriptions */
-  characters: Character[];
+  characters: Character[]
   /**
    * One-sentence story objective answering:
    * "Who wants what, and why?"
    */
-  objective: string;
+  objective: string
   /** Description of the story's setting — place, atmosphere, etc. */
-  setting: string;
+  setting: string
   /**
    * URL of the AI-generated or placeholder cover image.
    * `null` until generated.
    */
-  bannerUrl: string | null;
+  bannerUrl: string | null
   /** 12 story pages seeded on creation. */
-  pages: PageEntry[];
+  pages: PageEntry[]
   /** Coaching feedback per page, appended after each page review. */
-  pageFeedback: PageFeedback[];
+  pageFeedback: PageFeedback[]
   /** In-page AI text chat history. */
-  chatHistory: AiMessage[];
+  chatHistory: AiMessage[]
   /** Past voice sessions. */
-  voiceSessions: VoiceSession[];
+  voiceSessions: VoiceSession[]
   /** The page the child is currently working on (1–12). */
-  currentPage: number;
-  createdAt: ReturnType<typeof serverTimestamp> | null;
-  updatedAt: ReturnType<typeof serverTimestamp> | null;
+  currentPage: number
+  /**
+   * Lifecycle status of the project.
+   * - "draft"     → in progress (default)
+   * - "illustrated" → all pages generated, awaiting publish
+   * - "published"  → visible in the marketplace
+   */
+  status?: "draft" | "illustrated" | "published"
+  /** Set when the project is published to the marketplace. */
+  publishedAt?: ReturnType<typeof serverTimestamp> | null
+  createdAt: ReturnType<typeof serverTimestamp> | null
+  updatedAt: ReturnType<typeof serverTimestamp> | null
 }
 
 // Constant placeholder until real AI image generation is wired up
 const PLACEHOLDER_BANNER =
-  "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/luxury-book-cover-for-kids-design-template-0183c75605e27e745ea2415db5d59b72_screen.jpg?ts=1692367693";
+  "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/luxury-book-cover-for-kids-design-template-0183c75605e27e745ea2415db5d59b72_screen.jpg?ts=1692367693"
 
 /** Build the initial 12-page array with everything empty. */
 function seedPages(): Omit<PageEntry, "updatedAt">[] {
@@ -165,7 +176,7 @@ function seedPages(): Omit<PageEntry, "updatedAt">[] {
     content: "",
     status: "empty" as const,
     wordCount: 0,
-  }));
+  }))
 }
 
 /**
@@ -194,8 +205,8 @@ export async function createProject(
     currentPage: 1,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  });
-  return ref.id;
+  })
+  return ref.id
 }
 
 /**
@@ -204,11 +215,11 @@ export async function createProject(
 export async function getProject(
   projectId: string
 ): Promise<StoryProject | null> {
-  const ref = doc(db, "projects", projectId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
+  const ref = doc(db, "projects", projectId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return null
 
-  const raw = snap.data();
+  const raw = snap.data()
 
   // Backfill fields that may be missing on docs created before the schema update
   const defaultPages: PageEntry[] = Array.from({ length: 12 }, (_, i) => ({
@@ -217,7 +228,7 @@ export async function getProject(
     status: "empty" as const,
     wordCount: 0,
     updatedAt: null,
-  }));
+  }))
 
   return {
     id: snap.id,
@@ -227,30 +238,28 @@ export async function getProject(
     pageFeedback: raw.pageFeedback ?? [],
     chatHistory: raw.chatHistory ?? [],
     voiceSessions: raw.voiceSessions ?? [],
-  } as StoryProject;
+  } as StoryProject
 }
 
 /**
  * Fetch all projects that belong to a given user, ordered newest first.
  */
-export async function getUserProjects(
-  uid: string
-): Promise<StoryProject[]> {
+export async function getUserProjects(uid: string): Promise<StoryProject[]> {
   const q = query(
     collection(db, "projects"),
     where("userId", "==", uid),
     orderBy("createdAt", "desc")
-  );
-  const snap = await getDocs(q);
+  )
+  const snap = await getDocs(q)
   const defaultPages: PageEntry[] = Array.from({ length: 12 }, (_, i) => ({
     pageNumber: i + 1,
     content: "",
     status: "empty" as const,
     wordCount: 0,
     updatedAt: null,
-  }));
+  }))
   return snap.docs.map((d) => {
-    const raw = d.data();
+    const raw = d.data()
     return {
       id: d.id,
       ...raw,
@@ -259,8 +268,8 @@ export async function getUserProjects(
       pageFeedback: raw.pageFeedback ?? [],
       chatHistory: raw.chatHistory ?? [],
       voiceSessions: raw.voiceSessions ?? [],
-    } as StoryProject;
-  });
+    } as StoryProject
+  })
 }
 
 /**
@@ -273,20 +282,22 @@ export async function updatePage(
   pageNumber: number,
   patch: Partial<Pick<PageEntry, "content" | "status" | "wordCount">>
 ): Promise<void> {
-  if (!pageNumber || !Number.isFinite(pageNumber)) return;
-  const ref = doc(db, "projects", projectId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  const project = snap.data() as StoryProject;
-  const existing: PageEntry[] = project.pages ?? Array.from({ length: 12 }, (_, i) => ({
-    pageNumber: i + 1,
-    content: "",
-    status: "empty" as const,
-    wordCount: 0,
-    updatedAt: null,
-  }));
+  if (!pageNumber || !Number.isFinite(pageNumber)) return
+  const ref = doc(db, "projects", projectId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return
+  const project = snap.data() as StoryProject
+  const existing: PageEntry[] =
+    project.pages ??
+    Array.from({ length: 12 }, (_, i) => ({
+      pageNumber: i + 1,
+      content: "",
+      status: "empty" as const,
+      wordCount: 0,
+      updatedAt: null,
+    }))
 
-  const hasPage = existing.some((p) => p.pageNumber === pageNumber);
+  const hasPage = existing.some((p) => p.pageNumber === pageNumber)
   const pages: PageEntry[] = hasPage
     ? existing.map((p) =>
         p.pageNumber === pageNumber
@@ -302,20 +313,21 @@ export async function updatePage(
           wordCount: patch.wordCount ?? 0,
           updatedAt: Timestamp.now(),
         },
-      ];
+      ]
 
   // Firestore rejects `undefined` field values — sanitise each page entry.
-  const cleanPages = pages.map((p) =>
-    Object.fromEntries(
-      Object.entries(p).filter(([, v]) => v !== undefined)
-    ) as PageEntry
-  );
+  const cleanPages = pages.map(
+    (p) =>
+      Object.fromEntries(
+        Object.entries(p).filter(([, v]) => v !== undefined)
+      ) as PageEntry
+  )
 
   await updateDoc(ref, {
     pages: cleanPages,
     currentPage: pageNumber,
     updatedAt: serverTimestamp(),
-  });
+  })
 }
 
 /**
@@ -325,11 +337,11 @@ export async function savePageFeedback(
   projectId: string,
   feedback: Omit<PageFeedback, "createdAt">
 ): Promise<void> {
-  const ref = doc(db, "projects", projectId);
+  const ref = doc(db, "projects", projectId)
   await updateDoc(ref, {
     pageFeedback: arrayUnion({ ...feedback, createdAt: Timestamp.now() }),
     updatedAt: serverTimestamp(),
-  });
+  })
 }
 
 /**
@@ -339,11 +351,11 @@ export async function addChatMessage(
   projectId: string,
   message: Omit<AiMessage, "createdAt">
 ): Promise<void> {
-  const ref = doc(db, "projects", projectId);
+  const ref = doc(db, "projects", projectId)
   await updateDoc(ref, {
     chatHistory: arrayUnion({ ...message, createdAt: Timestamp.now() }),
     updatedAt: serverTimestamp(),
-  });
+  })
 }
 
 /**
@@ -353,10 +365,65 @@ export async function addVoiceSession(
   projectId: string,
   session: Omit<VoiceSession, "createdAt">
 ): Promise<void> {
-  const ref = doc(db, "projects", projectId);
+  const ref = doc(db, "projects", projectId)
   await updateDoc(ref, {
     voiceSessions: arrayUnion({ ...session, createdAt: Timestamp.now() }),
     updatedAt: serverTimestamp(),
-  });
+  })
 }
 
+/**
+ * Persist the Gemini-generated illustration URL into the page entry.
+ * Reads the current pages array, patches the matching page, then writes it back.
+ */
+export async function savePageIllustration(
+  projectId: string,
+  pageNumber: number,
+  imageUrl: string
+): Promise<void> {
+  const ref = doc(db, "projects", projectId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return
+  const data = snap.data() as StoryProject
+  const pages: PageEntry[] = (data.pages ?? []).map((p) =>
+    p.pageNumber === pageNumber ? { ...p, imageUrl } : p
+  )
+  await updateDoc(ref, { pages, updatedAt: serverTimestamp() })
+}
+
+/**
+ * Mark a project as published to the marketplace.
+ * Sets status → "published" and records a publishedAt timestamp.
+ */
+export async function publishProject(projectId: string): Promise<void> {
+  const ref = doc(db, "projects", projectId)
+  await updateDoc(ref, {
+    status: "published",
+    publishedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+/**
+ * Mark a project as fully illustrated (all page images generated).
+ */
+export async function markProjectIllustrated(projectId: string): Promise<void> {
+  const ref = doc(db, "projects", projectId)
+  await updateDoc(ref, {
+    status: "illustrated",
+    updatedAt: serverTimestamp(),
+  })
+}
+
+/**
+ * Fetch all projects that have been published to the marketplace.
+ */
+export async function getMarketplaceProjects(): Promise<StoryProject[]> {
+  const q = query(
+    collection(db, "projects"),
+    where("status", "==", "published"),
+    orderBy("publishedAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ ...(d.data() as StoryProject), id: d.id }))
+}

@@ -15,6 +15,10 @@ node_modules
 # Testing
 coverage
 
+# Editor directories and files
+alicia-monorepo/gap_analysis.md
+alicia-monorepo/task.md
+
 # Turbo
 .turbo
 
@@ -34,3 +38,7 @@ npm-debug.log*
 # Misc
 .DS_Store
 *.pem
+task.md
+.gitignore
+gap_analysis.md
+apps/web/.env.example
