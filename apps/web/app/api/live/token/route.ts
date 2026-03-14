@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 
 import { GEMINI_LIVE_MODEL, getGeminiClient } from "@/lib/ai/gemini"
-import { buildLiveSystemInstruction } from "@/lib/ai/prompts"
+import {
+  buildLiveSystemInstruction,
+  type ChatStoryContext,
+} from "@/lib/ai/prompts"
 
 export const runtime = "nodejs"
 
@@ -11,7 +14,26 @@ type EphemeralTokenResult = {
   newSessionExpireTime?: string
 }
 
-export async function POST() {
+type LiveTokenRequest = {
+  context?: ChatStoryContext
+}
+
+export async function POST(req: Request) {
+  const requestId = crypto.randomUUID()
+  const startedAt = Date.now()
+
+  let body: LiveTokenRequest = {}
+  try {
+    body = (await req.json()) as LiveTokenRequest
+  } catch {
+    body = {}
+  }
+
+  console.info("[api/live/token] request received", {
+    requestId,
+    model: GEMINI_LIVE_MODEL,
+  })
+
   try {
     const ai = getGeminiClient({ apiVersion: "v1alpha" }) as unknown as {
       authTokens?: {
@@ -24,9 +46,13 @@ export async function POST() {
 
     const authApi = ai.authTokens ?? ai.auth_tokens
     if (!authApi?.create) {
+      console.error("[api/live/token] auth token API unavailable", {
+        requestId,
+      })
       return NextResponse.json(
         {
           error: "Live token provisioning is unavailable in current SDK client",
+          requestId,
         },
         { status: 500 }
       )
@@ -44,30 +70,50 @@ export async function POST() {
         liveConnectConstraints: {
           model: GEMINI_LIVE_MODEL,
           config: {
-            responseModalities: ["AUDIO"],
+            responseModalities: ["AUDIO", "TEXT"],
             temperature: 0.7,
-            systemInstruction: buildLiveSystemInstruction(),
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
+            systemInstruction: buildLiveSystemInstruction(body.context),
           },
         },
       },
     })
 
     if (!token?.name) {
+      console.error("[api/live/token] token missing in provider response", {
+        requestId,
+      })
       return NextResponse.json(
-        { error: "Gemini did not return an ephemeral token" },
+        { error: "Gemini did not return an ephemeral token", requestId },
         { status: 500 }
       )
     }
+
+    console.info("[api/live/token] token issued", {
+      requestId,
+      model: GEMINI_LIVE_MODEL,
+      durationMs: Date.now() - startedAt,
+      expireTime: token.expireTime,
+      newSessionExpireTime: token.newSessionExpireTime,
+      mode: "token_issued (client is responsible for live websocket audio streaming)",
+    })
 
     return NextResponse.json({
       token: token.name,
       model: GEMINI_LIVE_MODEL,
       expireTime: token.expireTime,
       newSessionExpireTime: token.newSessionExpireTime,
+      requestId,
     })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to create live token"
-    return NextResponse.json({ error: message }, { status: 500 })
+    console.error("[api/live/token] request failed", {
+      requestId,
+      durationMs: Date.now() - startedAt,
+      error,
+    })
+    return NextResponse.json({ error: message, requestId }, { status: 500 })
   }
 }

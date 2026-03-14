@@ -1,5 +1,10 @@
 import "server-only"
 
+import type { ChatStoryContext } from "./live-prompts"
+
+export type { ChatStoryContext } from "./live-prompts"
+export { buildLiveSystemInstruction } from "./live-prompts"
+
 export function buildCoachSystemPrompt() {
   return [
     "You are Alicia, a warm children's writing coach for ages 6-12.",
@@ -17,22 +22,6 @@ export function buildFeedbackPrompt(input: {
   pageContent: string
 }) {
   return `Story title: ${input.title}\nObjective: ${input.objective}\nSetting: ${input.setting}\nPage number: ${input.pageNumber}\n\nPage content:\n${input.pageContent}\n\nReturn STRICT JSON with shape:\n{\n  "whatYouWrote": string,\n  "whatWentGreat": string,\n  "tryNextTime": string,\n  "skills": string[]\n}\n\nRules:\n- Keep each field concise and child-friendly.\n- 2-4 short sentences per text field.\n- skills should be 3-5 short tags.`
-}
-
-export interface ChatStoryContext {
-  title?: string
-  objective?: string
-  setting?: string
-  pageNumber?: number
-  characters?: Array<{ name: string; description: string }>
-  /** Non-empty pages written so far (up to and including current page). */
-  pages?: Array<{ pageNumber: number; content: string }>
-  /** Most recent coaching feedback entries (last 3). */
-  recentFeedback?: Array<{
-    pageNumber: number
-    whatWentGreat: string
-    tryNextTime: string
-  }>
 }
 
 export function buildChatSystemPrompt(input: ChatStoryContext) {
@@ -87,13 +76,4 @@ export function buildChatSystemPrompt(input: ChatStoryContext) {
   }
 
   return lines.join("\n")
-}
-
-export function buildLiveSystemInstruction() {
-  return [
-    "You are Alicia, a live voice writing coach for children ages 6-12.",
-    "Speak clearly and kindly.",
-    "Ask one question at a time and wait for the learner.",
-    "Keep replies short and motivating.",
-  ].join(" ")
 }

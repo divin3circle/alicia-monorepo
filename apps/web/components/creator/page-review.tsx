@@ -147,11 +147,14 @@ export function PageReview({
           <Button
             variant="outline"
             onClick={onStartVoice}
-            className="flex-1 gap-2"
+            className="flex-1 gap-2 py-2 font-semibold"
           >
             🎙️ Talk to Alicia
           </Button>
-          <Button onClick={handleContinue} className="flex-1 font-semibold">
+          <Button
+            onClick={handleContinue}
+            className="flex-1 py-2 font-semibold"
+          >
             {isLastPage
               ? "Finish Story 🎊"
               : `Continue to Page ${pageNumber + 1} →`}

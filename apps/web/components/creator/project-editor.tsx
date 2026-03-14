@@ -234,6 +234,22 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
       {showVoice && (
         <VoiceSessionModal
           pageNumber={currentPage}
+          storyContext={{
+            title: project.title,
+            objective: project.objective,
+            setting: project.setting,
+            characters: project.characters,
+            pages: pages
+              .filter(
+                (p) => p.status !== "empty" && p.pageNumber <= currentPage
+              )
+              .map((p) => ({ pageNumber: p.pageNumber, content: p.content })),
+            recentFeedback: (project.pageFeedback ?? []).slice(-3).map((f) => ({
+              pageNumber: f.pageNumber,
+              whatWentGreat: f.whatWentGreat,
+              tryNextTime: f.tryNextTime,
+            })),
+          }}
           onEnd={() => {
             setShowVoice(false)
             setShowReview(true)
