@@ -48,15 +48,21 @@ export function EditorArea({
     async (text: string) => {
       setSaveState("saving")
       const wc = countWords(text)
+      const nextStatus: "empty" | "draft" | "done" | "reviewed" = text.trim()
+        ? initialStatus === "done" || initialStatus === "reviewed"
+          ? initialStatus
+          : "draft"
+        : "empty"
+
       await updatePage(projectId, pageNumber, {
         content: text,
-        status: text.trim() ? "draft" : "empty",
+        status: nextStatus,
         wordCount: wc,
       })
       setSaveState("saved")
       setTimeout(() => setSaveState("idle"), 2000)
     },
-    [projectId, pageNumber]
+    [initialStatus, projectId, pageNumber]
   )
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

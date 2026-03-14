@@ -1,44 +1,61 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Clock, BookOpen, Plus } from "lucide-react";
-import { cn } from "@workspace/ui/lib/utils";
-import { getUserProjects, type StoryProject } from "@/lib/firestore";
-import { useAuth } from "@/lib/auth-context";
-import Image from "next/image";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Clock, BookOpen, Plus } from "lucide-react"
+import { cn } from "@workspace/ui/lib/utils"
+import { getUserProjects, type StoryProject } from "@/lib/firestore"
+import { useAuth } from "@/lib/auth-context"
+import Image from "next/image"
 
 const PLACEHOLDER_BANNER =
-  "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/luxury-book-cover-for-kids-design-template-0183c75605e27e745ea2415db5d59b72_screen.jpg?ts=1692367693";
+  "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/luxury-book-cover-for-kids-design-template-0183c75605e27e745ea2415db5d59b72_screen.jpg?ts=1692367693"
 
 function pagesDone(project: StoryProject): number {
-  return (project.pages ?? []).filter((p) => p.status === "done" || p.status === "reviewed").length;
+  const pages = project.pages ?? []
+  const doneCount = pages.filter(
+    (p) => p.status === "done" || p.status === "reviewed"
+  ).length
+
+  const highestTouched = pages.reduce((max, page) => {
+    const hasText = Boolean(page.content?.trim())
+    const touched = page.status !== "empty" || hasText
+    return touched ? Math.max(max, page.pageNumber) : max
+  }, 0)
+
+  return Math.max(doneCount, highestTouched, project.currentPage - 1, 0)
 }
 
 function formatRelative(val: unknown): string {
-  if (!val) return "Just now";
-  let ms: number | null = null;
+  if (!val) return "Just now"
+  let ms: number | null = null
   if (typeof val === "object" && val !== null && "toMillis" in val) {
-    ms = (val as { toMillis: () => number }).toMillis();
+    ms = (val as { toMillis: () => number }).toMillis()
   } else if (val instanceof Date) {
-    ms = val.getTime();
+    ms = val.getTime()
   }
-  if (!ms) return "Just now";
-  const diff = Date.now() - ms;
-  if (diff < 60_000) return "Just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-  return `${Math.floor(diff / 86_400_000)}d ago`;
+  if (!ms) return "Just now"
+  const diff = Date.now() - ms
+  if (diff < 60_000) return "Just now"
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
+  return `${Math.floor(diff / 86_400_000)}d ago`
 }
 
-function StoryCard({ project, onClick }: { project: StoryProject; onClick: () => void }) {
-  const done = pagesDone(project);
-  const pct = Math.round((done / 12) * 100);
+function StoryCard({
+  project,
+  onClick,
+}: {
+  project: StoryProject
+  onClick: () => void
+}) {
+  const done = pagesDone(project)
+  const pct = Math.round((done / 12) * 100)
 
   return (
     <div
       onClick={onClick}
-      className="group rounded-2xl border border-slate-500/10 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-md hover:border-indigo-400/30 transition-all cursor-pointer"
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-500/10 bg-white transition-all hover:border-indigo-400/30 hover:shadow-md dark:bg-slate-900"
     >
       {/* Banner */}
       <div className="relative h-36 overflow-hidden">
@@ -46,11 +63,11 @@ function StoryCard({ project, onClick }: { project: StoryProject; onClick: () =>
           src={project.bannerUrl ?? PLACEHOLDER_BANNER}
           alt={project.title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         {/* Progress pill */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-[11px] font-bold text-white bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
           <BookOpen className="size-3" />
           {done}/12 pages
         </div>
@@ -58,12 +75,12 @@ function StoryCard({ project, onClick }: { project: StoryProject; onClick: () =>
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 leading-snug mb-2 line-clamp-2">
+        <h3 className="mb-2 line-clamp-2 text-sm leading-snug font-bold text-slate-900 dark:text-slate-100">
           {project.title}
         </h3>
 
         {/* Progress bar */}
-        <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-3 overflow-hidden">
+        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div
             className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-500 transition-all"
             style={{ width: `${pct}%` }}
@@ -76,65 +93,76 @@ function StoryCard({ project, onClick }: { project: StoryProject; onClick: () =>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function EmptyState({ onNew }: { onNew: () => void }) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-16 gap-4 text-center">
-      <div className="size-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+    <div className="col-span-full flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div className="flex size-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-900/30">
         <BookOpen className="size-8 text-indigo-400" />
       </div>
       <div>
-        <p className="font-bold text-slate-800 dark:text-slate-200">No stories yet</p>
-        <p className="text-sm text-slate-400 mt-1">Start your first adventure!</p>
+        <p className="font-bold text-slate-800 dark:text-slate-200">
+          No stories yet
+        </p>
+        <p className="mt-1 text-sm text-slate-400">
+          Start your first adventure!
+        </p>
       </div>
       <button
         onClick={onNew}
-        className="flex items-center gap-2 text-sm font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+        className="flex items-center gap-2 text-sm font-semibold text-indigo-500 transition-colors hover:text-indigo-700"
       >
         <Plus className="size-4" />
         New Story
       </button>
     </div>
-  );
+  )
 }
 
 export function RecentCreations() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [projects, setProjects] = useState<StoryProject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth()
+  const router = useRouter()
+  const [projects, setProjects] = useState<StoryProject[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) return
     getUserProjects(user.uid)
       .then(setProjects)
-      .finally(() => setLoading(false));
-  }, [user]);
+      .finally(() => setLoading(false))
+  }, [user])
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-black text-slate-900 dark:text-slate-100">
           My Stories
         </h2>
         {projects.length > 0 && (
-          <span className="text-xs text-slate-400">{projects.length} project{projects.length !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-slate-400">
+            {projects.length} project{projects.length !== 1 ? "s" : ""}
+          </span>
         )}
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+              className="h-56 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800"
             />
           ))}
         </div>
       ) : (
-        <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4", projects.length === 0 && "block")}>
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3",
+            projects.length === 0 && "block"
+          )}
+        >
           {projects.length === 0 ? (
             <EmptyState onNew={() => router.push("/creator/new")} />
           ) : (
@@ -149,5 +177,5 @@ export function RecentCreations() {
         </div>
       )}
     </div>
-  );
+  )
 }
