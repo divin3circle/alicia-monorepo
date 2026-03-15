@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server"
+import { randomUUID } from "node:crypto"
 
 import { GEMINI_IMAGE_MODEL, getGeminiClient } from "@/lib/ai/gemini"
+import { getAdminStorage } from "@/lib/firebase-admin"
 
 type IllustrateRequest = {
+  projectId?: string
   pageText?: string
   pageNumber?: number
   storyTitle?: string
@@ -64,19 +67,62 @@ function extractImagePart(
 
 export const runtime = "nodejs"
 
+function sanitizeForPath(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+}
+
+async function uploadImageToStorage(input: {
+  projectId: string
+  pageNumber: number
+  mimeType: string
+  base64Data: string
+}) {
+  const storage = getAdminStorage()
+  const bucket = storage.bucket()
+  const extension = input.mimeType.split("/")[1] || "png"
+  const filePath = `projects/${input.projectId}/illustrations/page-${input.pageNumber}-${randomUUID()}.${extension}`
+  const file = bucket.file(filePath)
+  const downloadToken = randomUUID()
+
+  const bytes = Buffer.from(input.base64Data, "base64")
+  await file.save(bytes, {
+    contentType: input.mimeType,
+    metadata: {
+      cacheControl: "public, max-age=31536000, immutable",
+      metadata: {
+        firebaseStorageDownloadTokens: downloadToken,
+      },
+    },
+    resumable: false,
+  })
+
+  const encodedPath = encodeURIComponent(filePath)
+  const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`
+
+  return downloadUrl
+}
+
 export async function POST(req: Request) {
-  const requestId = crypto.randomUUID()
+  const requestId = randomUUID()
 
   try {
     const body = (await req.json()) as IllustrateRequest
 
+    const projectId = body.projectId?.trim()
     const pageText = body.pageText?.trim()
     const pageNumber = body.pageNumber
     const storyTitle = body.storyTitle?.trim() || "Untitled Story"
 
-    if (!pageText || !pageNumber) {
+    if (!projectId || !pageText || !pageNumber) {
       return NextResponse.json(
-        { error: "pageText and pageNumber are required", requestId },
+        {
+          error: "projectId, pageText and pageNumber are required",
+          requestId,
+        },
         { status: 400 }
       )
     }
@@ -86,6 +132,7 @@ export async function POST(req: Request) {
       model: GEMINI_IMAGE_MODEL,
       pageNumber,
       textLength: pageText.length,
+      projectId,
     })
 
     const ai = getGeminiClient()
@@ -125,8 +172,22 @@ export async function POST(req: Request) {
       bytesBase64: image.data.length,
     })
 
+    const storageProjectId = sanitizeForPath(projectId)
+    const imageUrl = await uploadImageToStorage({
+      projectId: storageProjectId,
+      pageNumber,
+      mimeType: image.mimeType,
+      base64Data: image.data,
+    })
+
+    console.info("[api/ai/illustrate] image uploaded", {
+      requestId,
+      projectId: storageProjectId,
+      pageNumber,
+    })
+
     return NextResponse.json({
-      imageUrl: `data:${image.mimeType};base64,${image.data}`,
+      imageUrl,
       requestId,
     })
   } catch (error) {

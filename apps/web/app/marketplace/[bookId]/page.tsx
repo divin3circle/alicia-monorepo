@@ -30,9 +30,6 @@ function getCoverImage(project: StoryProject): string {
   return `https://picsum.photos/seed/${encodeURIComponent(project.title ?? "book")}/800/500`
 }
 
-// ---------------------------------------------------------------------------
-// Spread layout — two pages side-by-side (left=image, right=text)
-// ---------------------------------------------------------------------------
 function Spread({
   page,
   onPrev,
@@ -47,7 +44,7 @@ function Spread({
   hasNext: boolean
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-0 overflow-hidden rounded-3xl border bg-card shadow-2xl lg:flex-row">
+    <div className="mx-auto flex h-[600px] w-full max-w-5xl flex-col gap-0 overflow-hidden rounded-3xl border bg-card shadow-2xl lg:flex-row">
       {/* Left — illustration */}
       <div className="relative aspect-4/3 min-h-64 bg-muted/30 lg:aspect-auto lg:w-1/2">
         {page.imageUrl ? (
@@ -95,7 +92,7 @@ function Spread({
             size="sm"
             onClick={onNext}
             disabled={!hasNext}
-            className="gap-1.5"
+            className="gap-1.5 bg-foreground text-background hover:bg-foreground/80 disabled:pointer-events-none disabled:opacity-50"
           >
             {hasNext ? (
               <>
@@ -147,7 +144,11 @@ function CoverSpread({
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           {project.objective}
         </p>
-        <Button onClick={onStart} className="mt-1 gap-2" size="lg">
+        <Button
+          onClick={onStart}
+          className="mt-1 gap-2 bg-background text-foreground hover:bg-background/60"
+          size="lg"
+        >
           <BookOpen className="h-4 w-4" /> Start Reading
         </Button>
       </div>
@@ -155,9 +156,6 @@ function CoverSpread({
   )
 }
 
-// ---------------------------------------------------------------------------
-// End spread
-// ---------------------------------------------------------------------------
 function EndSpread({ project }: { project: StoryProject }) {
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-6 py-12 text-center">
@@ -178,9 +176,6 @@ function EndSpread({ project }: { project: StoryProject }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
 export default function BookReaderPage() {
   const { bookId } = useParams<{ bookId: string }>()
 
@@ -250,8 +245,7 @@ export default function BookReaderPage() {
         </div>
       </header>
 
-      {/* Reader body */}
-      <main className="flex flex-1 items-center px-6 py-10">
+      <main className="flex h-full flex-1 items-center px-6 py-10">
         <div className="w-full">
           {currentIndex === -1 ? (
             <CoverSpread project={project} onStart={() => setCurrentIndex(0)} />

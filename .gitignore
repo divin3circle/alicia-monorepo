@@ -18,6 +18,7 @@ coverage
 # Editor directories and files
 alicia-monorepo/gap_analysis.md
 alicia-monorepo/task.md
+alicia-monorepo/apps/web/alicia-44394-firebase-adminsdk-fbsvc-9be79ddf70.json
 
 # Turbo
 .turbo
@@ -42,3 +43,4 @@ task.md
 .gitignore
 gap_analysis.md
 apps/web/.env.example
+apps/web/alicia-44394-firebase-adminsdk-fbsvc-9be79ddf70.json

@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 
 async function generateIllustration(
+  projectId: string,
   pageText: string,
   pageNumber: number,
   storyTitle: string
@@ -33,6 +34,7 @@ async function generateIllustration(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      projectId,
       pageText,
       pageNumber,
       storyTitle,
@@ -108,6 +110,7 @@ export default function IllustrationsPage() {
       )
       try {
         const url = await generateIllustration(
+          projectId,
           illustrations.find((il) => il.page.pageNumber === pageNumber)?.page
             .content ?? "",
           pageNumber,
@@ -144,8 +147,6 @@ export default function IllustrationsPage() {
     setGlobalState("done")
   }
 
-  const allDone =
-    illustrations.length > 0 && illustrations.every((il) => il.state === "done")
   const doneCount = illustrations.filter((il) => il.state === "done").length
   const lastIllustrationPage = illustrations.at(-1)?.page.pageNumber ?? 0
 
@@ -188,20 +189,19 @@ export default function IllustrationsPage() {
             <span className="text-sm text-muted-foreground">
               {doneCount} / {illustrations.length} illustrated
             </span>
-            {!allDone ? (
-              <Button
-                onClick={generateAll}
-                disabled={globalState === "generating"}
-                className="gap-2 bg-foreground text-background hover:bg-foreground/90"
-              >
-                {globalState === "generating" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                {globalState === "generating" ? "Generating…" : "Generate All"}
-              </Button>
-            ) : (
+            <Button
+              onClick={generateAll}
+              disabled={globalState === "generating"}
+              className="gap-2 bg-foreground text-background hover:bg-foreground/90"
+            >
+              {globalState === "generating" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {globalState === "generating" ? "Generating…" : "Generate All"}
+            </Button>
+            {doneCount > 0 ? (
               <Button
                 onClick={handlePublish}
                 disabled={publishing}
@@ -214,7 +214,7 @@ export default function IllustrationsPage() {
                 )}
                 {publishing ? "Publishing…" : "Publish to Marketplace"}
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
