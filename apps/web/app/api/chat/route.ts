@@ -12,6 +12,7 @@ type ChatRequest = {
   message?: string
   history?: ChatMessage[]
   context?: ChatStoryContext
+  mode?: "project-editor" | "general"
 }
 
 export const runtime = "nodejs"
@@ -48,7 +49,12 @@ export async function POST(req: Request) {
     })
 
     const system = buildChatSystemPrompt(body.context ?? {})
-    const prompt = `${system}\n\nConversation so far:\n${toConversationText(history)}\n\nUser: ${message}\nAlicia:`
+    const insertModeInstruction =
+      body.mode === "project-editor"
+        ? `\n\nSpecial output rule for editor assist:\nIf the user explicitly asks you to generate or draft text for the current page, respond with ONLY the exact text to insert (no intro, no explanation, no bullet labels).\nFor all other requests, respond normally as Alicia.`
+        : ""
+
+    const prompt = `${system}${insertModeInstruction}\n\nConversation so far:\n${toConversationText(history)}\n\nUser: ${message}\nAlicia:`
 
     const ai = getGeminiClient()
 

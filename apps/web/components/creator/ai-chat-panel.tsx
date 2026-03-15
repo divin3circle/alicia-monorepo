@@ -15,6 +15,10 @@ interface AiChatPanelProps {
   /** Pre-loaded history filtered to this page (or all history). */
   history: AiMessage[]
   onAppendMessages: (msgs: AiMessage[]) => void
+  /** Enables insertable generation actions (project editor only). */
+  enableInsertActions?: boolean
+  /** Inserts generated text into the current page editor. */
+  onInsertText?: (text: string) => Promise<void> | void
   storyContext?: {
     title?: string
     objective?: string
@@ -34,12 +38,26 @@ export function AiChatPanel({
   pageNumber,
   history,
   onAppendMessages,
+  enableInsertActions = false,
+  onInsertText,
   storyContext,
 }: AiChatPanelProps) {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [streamingReply, setStreamingReply] = useState("")
+  const [insertingText, setInsertingText] = useState<string | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
+
+  const isInsertIntent = (text: string) => {
+    const lower = text.toLowerCase()
+    const asksGenerate =
+      /(generate|write|draft|create|suggest|give me|come up with)/.test(lower)
+    const asksPageText =
+      /(sentence|line|paragraph|text|wording|for this page|for page)/.test(
+        lower
+      )
+    return asksGenerate && asksPageText
+  }
 
   const scrollToBottom = () =>
     endRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -47,6 +65,7 @@ export function AiChatPanel({
   const handleSend = async () => {
     const text = input.trim()
     if (!text || loading) return
+    const shouldMarkInsertable = enableInsertActions && isInsertIntent(text)
     setInput("")
     setLoading(true)
 
@@ -72,6 +91,7 @@ export function AiChatPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
+          mode: enableInsertActions ? "project-editor" : "general",
           // Send last 20 messages as conversation context (cost + latency)
           history: history
             .filter((msg) => msg.role === "user" || msg.role === "assistant")
@@ -136,6 +156,7 @@ export function AiChatPanel({
       const aiMsg: AiMessage = {
         role: "assistant",
         content: aiText,
+        insertableText: shouldMarkInsertable ? aiText : undefined,
         pageContext: pageNumber,
         createdAt: null,
       }
@@ -143,6 +164,7 @@ export function AiChatPanel({
       await addChatMessage(projectId, {
         role: "assistant",
         content: aiText,
+        insertableText: shouldMarkInsertable ? aiText : undefined,
         pageContext: pageNumber,
       })
 
@@ -150,7 +172,7 @@ export function AiChatPanel({
       setLoading(false)
       setStreamingReply("")
       setTimeout(scrollToBottom, 50)
-    } catch {
+    } catch (error) {
       const errorMsg: AiMessage = {
         role: "assistant",
         content:
@@ -159,7 +181,7 @@ export function AiChatPanel({
         createdAt: null,
       }
       onAppendMessages([errorMsg])
-      console.error("[ai-chat-panel] unexpected chat failure")
+      console.error("[ai-chat-panel] unexpected chat failure", error)
       setLoading(false)
       setStreamingReply("")
       setTimeout(scrollToBottom, 50)
@@ -213,6 +235,33 @@ export function AiChatPanel({
                 >
                   {msg.content}
                 </div>
+                {msg.role === "assistant" &&
+                  msg.insertableText &&
+                  enableInsertActions &&
+                  onInsertText && (
+                    <div className="mt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        disabled={insertingText === msg.insertableText}
+                        onClick={async () => {
+                          const textToInsert = msg.insertableText
+                          if (!textToInsert) return
+                          setInsertingText(textToInsert)
+                          try {
+                            await onInsertText(textToInsert)
+                          } finally {
+                            setInsertingText(null)
+                          }
+                        }}
+                      >
+                        {insertingText === msg.insertableText
+                          ? "Inserting…"
+                          : "Insert into page"}
+                      </Button>
+                    </div>
+                  )}
               </div>
             )
           })}
@@ -243,6 +292,7 @@ export function AiChatPanel({
           size="sm"
           onClick={handleSend}
           disabled={!input.trim() || loading}
+          className="bg-foreground text-background disabled:hidden"
         >
           Send
         </Button>

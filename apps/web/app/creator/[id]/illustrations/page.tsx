@@ -24,26 +24,38 @@ import {
   Globe,
 } from "lucide-react"
 
-// ---------------------------------------------------------------------------
-// Placeholder: replace with real Gemini Imagen API call. Returns a data URL or
-// hosted URL. This stub uses a deterministic placeholder so the UI works E2E.
-// ---------------------------------------------------------------------------
 async function generateIllustration(
   pageText: string,
   pageNumber: number,
   storyTitle: string
 ): Promise<string> {
-  // TODO: replace with actual API route POST /api/ai/illustrate
-  await new Promise((r) => setTimeout(r, 1200 + Math.random() * 800))
-  const seed = encodeURIComponent(
-    `${storyTitle}-page-${pageNumber}-${pageText.slice(0, 24)}`
-  )
-  return `https://picsum.photos/seed/${seed}/640/480`
+  const response = await fetch("/api/ai/illustrate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      pageText,
+      pageNumber,
+      storyTitle,
+    }),
+  })
+
+  const payload = (await response.json()) as {
+    imageUrl?: string
+    error?: string
+    requestId?: string
+  }
+
+  if (!response.ok || !payload.imageUrl) {
+    throw new Error(
+      payload.error
+        ? `${payload.error}${payload.requestId ? ` | ${payload.requestId}` : ""}`
+        : "Failed to generate illustration"
+    )
+  }
+
+  return payload.imageUrl
 }
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 type IllustrationState = "idle" | "generating" | "done" | "error"
 
 interface PageIllustration {
@@ -52,9 +64,6 @@ interface PageIllustration {
   state: IllustrationState
 }
 
-// ---------------------------------------------------------------------------
-// Main page
-// ---------------------------------------------------------------------------
 export default function IllustrationsPage() {
   const { id: projectId } = useParams<{ id: string }>()
   const router = useRouter()
@@ -67,7 +76,6 @@ export default function IllustrationsPage() {
   const [publishing, setPublishing] = useState(false)
   const [selectedPage, setSelectedPage] = useState<number>(1)
 
-  // Load project on mount
   useEffect(() => {
     if (!projectId) return
     getProject(projectId).then((p) => {
@@ -88,7 +96,6 @@ export default function IllustrationsPage() {
     })
   }, [projectId])
 
-  // Generate a single page illustration
   const generateOne = useCallback(
     async (pageNumber: number) => {
       if (!project) return
@@ -125,7 +132,6 @@ export default function IllustrationsPage() {
     [project, illustrations, projectId]
   )
 
-  // Generate all pages sequentially
   const generateAll = async () => {
     if (illustrations.length === 0) return
     setGlobalState("generating")
@@ -157,7 +163,7 @@ export default function IllustrationsPage() {
   if (!project) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
       </div>
     )
   }
@@ -168,7 +174,7 @@ export default function IllustrationsPage() {
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-primary" />
+            <BookOpen className="h-5 w-5 text-foreground" />
             <div>
               <h1 className="line-clamp-1 text-base leading-tight font-semibold">
                 {project.title}
@@ -186,7 +192,7 @@ export default function IllustrationsPage() {
               <Button
                 onClick={generateAll}
                 disabled={globalState === "generating"}
-                className="gap-2"
+                className="gap-2 bg-foreground text-background hover:bg-foreground/90"
               >
                 {globalState === "generating" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -226,7 +232,7 @@ export default function IllustrationsPage() {
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-all",
                 selectedPage === il.page.pageNumber
-                  ? "bg-primary/10 font-medium text-primary"
+                  ? "bg-primary/10 font-medium text-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
@@ -237,7 +243,7 @@ export default function IllustrationsPage() {
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
               )}
               {il.state === "generating" && (
-                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-foreground" />
               )}
               {il.state === "idle" && (
                 <span className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-muted-foreground/30" />
@@ -250,15 +256,13 @@ export default function IllustrationsPage() {
           ))}
         </aside>
 
-        {/* Main area — preview */}
         <main className="min-w-0 flex-1">
           {selectedIllustration && (
             <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-              {/* Illustration canvas */}
               <div className="relative flex aspect-4/3 items-center justify-center bg-muted/30">
                 {selectedIllustration.state === "generating" ? (
                   <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                    <Sparkles className="h-10 w-10 animate-pulse text-primary" />
+                    <Sparkles className="h-10 w-10 animate-pulse text-foreground" />
                     <p className="text-sm font-medium">
                       Imagining your illustration…
                     </p>
@@ -278,7 +282,6 @@ export default function IllustrationsPage() {
                   </div>
                 )}
 
-                {/* Status badge overlay */}
                 {selectedIllustration.state === "done" && (
                   <Badge className="absolute top-3 right-3 gap-1 border-0 bg-emerald-500/90 text-white">
                     <CheckCircle2 className="h-3 w-3" />
@@ -287,7 +290,6 @@ export default function IllustrationsPage() {
                 )}
               </div>
 
-              {/* Page text + actions */}
               <div className="border-t p-5">
                 <div className="mb-3 flex items-start justify-between gap-4">
                   <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
@@ -309,7 +311,6 @@ export default function IllustrationsPage() {
                           : "Generate"}
                       </Button>
                     )}
-                    {/* Navigate to next page */}
                     {selectedPage < lastIllustrationPage && (
                       <Button
                         size="sm"

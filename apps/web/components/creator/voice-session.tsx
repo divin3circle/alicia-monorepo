@@ -371,7 +371,7 @@ export function VoiceSessionModal({
               href={FIREBASE_AI_LOGIC_CONSOLE_URL}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-primary underline underline-offset-2"
+              className="text-xs text-foreground underline underline-offset-2"
             >
               Open AI Logic Setup
             </a>

@@ -103,6 +103,8 @@ export interface PageFeedback {
 export interface AiMessage {
   role: "user" | "assistant"
   content: string
+  /** Optional machine-usable text that can be inserted into the editor. */
+  insertableText?: string
   pageContext: number | null
   createdAt: Timestamp | null
 }
@@ -352,8 +354,13 @@ export async function addChatMessage(
   message: Omit<AiMessage, "createdAt">
 ): Promise<void> {
   const ref = doc(db, "projects", projectId)
+  const cleanMessage = Object.fromEntries(
+    Object.entries({ ...message, createdAt: Timestamp.now() }).filter(
+      ([, value]) => value !== undefined
+    )
+  )
   await updateDoc(ref, {
-    chatHistory: arrayUnion({ ...message, createdAt: Timestamp.now() }),
+    chatHistory: arrayUnion(cleanMessage),
     updatedAt: serverTimestamp(),
   })
 }

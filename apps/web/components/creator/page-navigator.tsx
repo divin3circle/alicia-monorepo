@@ -45,7 +45,7 @@ export function PageNavigator({
                     locked
                       ? "cursor-not-allowed opacity-40"
                       : currentPage === p.pageNumber
-                        ? "bg-primary/10 font-medium text-primary"
+                        ? "bg-primary/10 font-medium text-foreground"
                         : "text-foreground hover:bg-muted"
                   )}
                 >
@@ -91,7 +91,7 @@ export function PageNavigator({
                 locked
                   ? "cursor-not-allowed bg-muted text-muted-foreground opacity-30"
                   : currentPage === p.pageNumber
-                    ? "bg-primary text-primary-foreground ring-2 ring-primary"
+                    ? "text-foreground-foreground bg-primary ring-2 ring-primary"
                     : "bg-muted text-muted-foreground hover:bg-muted/70"
               )}
             >

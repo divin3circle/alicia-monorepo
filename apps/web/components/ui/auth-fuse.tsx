@@ -1,32 +1,32 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { useState, useEffect } from "react";
-import { Slot } from "@radix-ui/react-slot";
-import * as LabelPrimitive from "@radix-ui/react-label";
-import { cva, type VariantProps } from "class-variance-authority";
-import { Sparkles, Loader2 } from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { Hexagon } from "@phosphor-icons/react";
-import { useAuth } from "@/lib/auth-context";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import * as React from "react"
+import { useState, useEffect } from "react"
+import { Slot } from "@radix-ui/react-slot"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cva, type VariantProps } from "class-variance-authority"
+import { Sparkles, Loader2 } from "lucide-react"
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+import { Hexagon } from "@phosphor-icons/react"
+import { useAuth } from "@/lib/auth-context"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 // ─── Typewriter ─────────────────────────────────────────────────────────────
 
 export interface TypewriterProps {
-  text: string | string[];
-  speed?: number;
-  cursor?: string;
-  loop?: boolean;
-  deleteSpeed?: number;
-  delay?: number;
-  className?: string;
+  text: string | string[]
+  speed?: number
+  cursor?: string
+  loop?: boolean
+  deleteSpeed?: number
+  delay?: number
+  className?: string
 }
 
 export function Typewriter({
@@ -38,40 +38,40 @@ export function Typewriter({
   delay = 1500,
   className,
 }: TypewriterProps) {
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [textArrayIndex, setTextArrayIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("")
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [textArrayIndex, setTextArrayIndex] = useState(0)
 
-  const textArray = Array.isArray(text) ? text : [text];
-  const currentText = textArray[textArrayIndex] || "";
+  const textArray = Array.isArray(text) ? text : [text]
+  const currentText = textArray[textArrayIndex] || ""
 
   useEffect(() => {
-    if (!currentText) return;
+    if (!currentText) return
 
     const timeout = setTimeout(
       () => {
         if (!isDeleting) {
           if (currentIndex < currentText.length) {
-            setDisplayText((prev) => prev + currentText[currentIndex]);
-            setCurrentIndex((prev) => prev + 1);
+            setDisplayText((prev) => prev + currentText[currentIndex])
+            setCurrentIndex((prev) => prev + 1)
           } else if (loop) {
-            setTimeout(() => setIsDeleting(true), delay);
+            setTimeout(() => setIsDeleting(true), delay)
           }
         } else {
           if (displayText.length > 0) {
-            setDisplayText((prev) => prev.slice(0, -1));
+            setDisplayText((prev) => prev.slice(0, -1))
           } else {
-            setIsDeleting(false);
-            setCurrentIndex(0);
-            setTextArrayIndex((prev) => (prev + 1) % textArray.length);
+            setIsDeleting(false)
+            setCurrentIndex(0)
+            setTextArrayIndex((prev) => (prev + 1) % textArray.length)
           }
         }
       },
-      isDeleting ? deleteSpeed : speed,
-    );
+      isDeleting ? deleteSpeed : speed
+    )
 
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(timeout)
   }, [
     currentIndex,
     isDeleting,
@@ -82,21 +82,21 @@ export function Typewriter({
     delay,
     displayText,
     text,
-  ]);
+  ])
 
   return (
     <span className={className}>
       {displayText}
       <span className="animate-pulse">{cursor}</span>
     </span>
-  );
+  )
 }
 
 // ─── Primitives ──────────────────────────────────────────────────────────────
 
 const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-);
+  "text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+)
 
 const Label = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
@@ -108,20 +108,23 @@ const Label = React.forwardRef<
     className={cn(labelVariants(), className)}
     {...props}
   />
-));
-Label.displayName = LabelPrimitive.Root.displayName;
+))
+Label.displayName = LabelPrimitive.Root.displayName
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input dark:border-input/50 bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default: "text-foreground-foreground bg-primary hover:bg-primary/90",
+        destructive:
+          "text-destructive-foreground bg-destructive hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground dark:border-input/50",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary/60 dark:text-primary-foreground/60 underline-offset-4 hover:underline",
+        link: "dark:text-foreground-foreground/60 text-foreground/60 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -135,27 +138,28 @@ const buttonVariants = cva(
       size: "default",
     },
   }
-);
+)
 
 interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+  asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+    const Comp = asChild ? Slot : "button"
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
       />
-    );
+    )
   }
-);
-Button.displayName = "Button";
+)
+Button.displayName = "Button"
 
 // ─── Google Icon ─────────────────────────────────────────────────────────────
 
@@ -179,42 +183,43 @@ function GoogleIcon() {
         fill="#EA4335"
       />
     </svg>
-  );
+  )
 }
 
 // ─── Auth Form ────────────────────────────────────────────────────────────────
 
 function AuthFormContainer() {
-  const { signInWithGoogle } = useAuth();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { signInWithGoogle } = useAuth()
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   const handleGoogleSignIn = async () => {
     try {
-      setLoading(true);
-      await signInWithGoogle();
-      toast.success("Welcome to Alicia!");
-      router.push("/onboarding");
+      setLoading(true)
+      await signInWithGoogle()
+      toast.success("Welcome to Alicia!")
+      router.push("/onboarding")
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Sign-in failed. Please try again.";
+        err instanceof Error ? err.message : "Sign-in failed. Please try again."
       // User closed the popup — don't show an error toast
-      if ((err as { code?: string })?.code === "auth/popup-closed-by-user") return;
-      toast.error(message);
+      if ((err as { code?: string })?.code === "auth/popup-closed-by-user")
+        return
+      toast.error(message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="mx-auto grid w-[350px] gap-8">
       {/* Header */}
       <div className="flex flex-col items-center gap-3 text-center">
-        <div className="p-3 bg-amber-500/10 rounded-2xl">
-          <Hexagon className="h-6 w-6 text-amber-500 stroke-[1.5]" />
+        <div className="rounded-2xl bg-amber-500/10 p-3">
+          <Hexagon className="h-6 w-6 stroke-[1.5] text-amber-500" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome to Alicia</h1>
-        <p className="text-balance text-sm text-muted-foreground">
+        <p className="text-sm text-balance text-muted-foreground">
           Sign in to continue your storytelling journey
         </p>
       </div>
@@ -224,7 +229,7 @@ function AuthFormContainer() {
         <Button
           variant="outline"
           type="button"
-          className="h-12 font-bold gap-3 rounded-xl text-base"
+          className="h-12 gap-3 rounded-xl text-base font-bold"
           onClick={handleGoogleSignIn}
           disabled={loading}
         >
@@ -238,36 +243,36 @@ function AuthFormContainer() {
       </div>
 
       {/* Footer */}
-      <p className="px-8 text-center text-[9px] uppercase text-muted-foreground leading-relaxed">
+      <p className="px-8 text-center text-[9px] leading-relaxed text-muted-foreground uppercase">
         By continuing, you agree to our{" "}
         <a
           href="https://github.com/divin3circle"
-          className="underline underline-offset-4 hover:text-primary"
+          className="underline underline-offset-4 hover:text-foreground"
         >
           Terms
         </a>{" "}
         and{" "}
         <a
           href="https://github.com/divin3circle"
-          className="underline underline-offset-4 hover:text-primary"
+          className="underline underline-offset-4 hover:text-foreground"
         >
           Privacy
         </a>
         .
       </p>
     </div>
-  );
+  )
 }
 
 // ─── Side Panel Content ───────────────────────────────────────────────────────
 
 interface AuthContentProps {
-  image?: { src: string; alt: string };
-  quote?: { text: string; author: string };
+  image?: { src: string; alt: string }
+  quote?: { text: string; author: string }
 }
 
 interface AuthUIProps {
-  content?: AuthContentProps;
+  content?: AuthContentProps
 }
 
 const defaultContent: Required<AuthContentProps> = {
@@ -279,16 +284,16 @@ const defaultContent: Required<AuthContentProps> = {
     text: "Every great book was once just a collection of small ideas.",
     author: "Alicia AI Coach",
   },
-};
+}
 
 export function AuthUI({ content = {} }: AuthUIProps) {
   const finalContent = {
     image: { ...defaultContent.image, ...content.image },
     quote: { ...defaultContent.quote, ...content.quote },
-  };
+  }
 
   return (
-    <div className="w-full min-h-screen md:grid md:grid-cols-2 bg-background">
+    <div className="min-h-screen w-full bg-background md:grid md:grid-cols-2">
       {/* Form panel */}
       <div className="flex h-screen items-center justify-center p-6 md:h-auto md:p-0">
         <AuthFormContainer />
@@ -296,7 +301,7 @@ export function AuthUI({ content = {} }: AuthUIProps) {
 
       {/* Decorative panel */}
       <div
-        className="hidden md:block relative overflow-hidden group"
+        className="group relative hidden overflow-hidden md:block"
         key={finalContent.image.src}
       >
         <div
@@ -307,7 +312,7 @@ export function AuthUI({ content = {} }: AuthUIProps) {
         <div className="absolute inset-0 bg-primary/20 backdrop-grayscale-[0.5]" />
 
         <div className="relative z-10 flex h-full flex-col items-center justify-end p-12 pb-24">
-          <blockquote className="space-y-4 text-center max-w-md">
+          <blockquote className="max-w-md space-y-4 text-center">
             <p className="text-3xl font-bold tracking-tight text-white drop-shadow-2xl">
               "
               <Typewriter
@@ -318,7 +323,7 @@ export function AuthUI({ content = {} }: AuthUIProps) {
               "
             </p>
             <footer className="mt-4">
-              <cite className="dark:text-amber-400 text-slate-900 text-xs uppercase tracking-[0.3em] font-bold not-italic">
+              <cite className="text-xs font-bold tracking-[0.3em] text-slate-900 uppercase not-italic dark:text-amber-400">
                 — {finalContent.quote.author}
               </cite>
             </footer>
@@ -326,5 +331,5 @@ export function AuthUI({ content = {} }: AuthUIProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

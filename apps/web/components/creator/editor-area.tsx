@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -38,7 +39,6 @@ export function EditorArea({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wordCount = countWords(content)
 
-  // Reset local state whenever the page changes
   useEffect(() => {
     setContent(initialContent)
     setSaveState("idle")
@@ -85,9 +85,6 @@ export function EditorArea({
     onDone()
   }
 
-  // Pages that have been submitted can still be edited (kids need to fix typos
-  // and revise earlier content — locking them out is frustrating). The submit
-  // button simply hides once a page has been moved forward.
   const isSubmitted = initialStatus === "done" || initialStatus === "reviewed"
 
   return (
@@ -126,12 +123,11 @@ export function EditorArea({
         <span className="text-xs text-muted-foreground">
           {wordCount} word{wordCount !== 1 ? "s" : ""}
         </span>
-        {/* Only show the advance button while the page hasn't been submitted */}
         {!isSubmitted && (
           <Button
             onClick={handleDone}
             disabled={!content.trim()}
-            className="bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90"
+            className="bg-foreground px-6 font-semibold text-background hover:bg-foreground/90 disabled:hidden"
           >
             {isLastPage
               ? "Finish Story 🎊"

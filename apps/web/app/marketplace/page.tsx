@@ -66,7 +66,7 @@ function BookCard({ project }: { project: StoryProject }) {
 
       {/* Meta */}
       <div className="flex flex-1 flex-col gap-1.5 p-4">
-        <h2 className="line-clamp-2 text-sm leading-snug font-semibold transition-colors group-hover:text-primary">
+        <h2 className="line-clamp-2 text-sm leading-snug font-semibold transition-colors group-hover:text-foreground">
           {project.title}
         </h2>
         <p className="line-clamp-2 flex-1 text-xs leading-relaxed text-muted-foreground">
@@ -83,7 +83,7 @@ function BookCard({ project }: { project: StoryProject }) {
               unoptimized
             />
           ) : (
-            <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary/20 text-[9px] font-bold text-primary">
+            <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary/20 text-[9px] font-bold text-foreground">
               {authorInitial}
             </div>
           )}
@@ -165,7 +165,7 @@ export default function MarketplacePage() {
           {/* Grid / states */}
           {loading ? (
             <div className="flex justify-center py-24">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin text-foreground" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-[2rem] border border-dashed py-24 text-center text-muted-foreground">
@@ -185,7 +185,7 @@ export default function MarketplacePage() {
                   <p className="text-xs">Finish your book to be the first!</p>
                   <Link
                     href="/creator/new"
-                    className="mt-1 text-sm font-semibold text-primary hover:underline"
+                    className="mt-1 text-sm font-semibold text-foreground hover:underline"
                   >
                     Start writing →
                   </Link>

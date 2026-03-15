@@ -12,7 +12,12 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet"
 
-import { getProject, type AiMessage, type StoryProject } from "@/lib/firestore"
+import {
+  getProject,
+  updatePage,
+  type AiMessage,
+  type StoryProject,
+} from "@/lib/firestore"
 import { PageNavigator } from "@/components/creator/page-navigator"
 import { EditorArea } from "@/components/creator/editor-area"
 import { AiChatPanel } from "@/components/creator/ai-chat-panel"
@@ -45,6 +50,55 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
   useEffect(() => {
     fetchProject()
   }, [fetchProject])
+
+  const handleInsertFromChat = useCallback(
+    async (text: string) => {
+      const clean = text.trim()
+      if (!clean) return
+
+      const current = (project?.pages ?? []).find(
+        (p) => p.pageNumber === currentPage
+      )
+
+      const existingContent = current?.content ?? ""
+      const nextContent = existingContent.trim()
+        ? `${existingContent.trimEnd()}\n${clean}`
+        : clean
+
+      const wordCount = nextContent.trim()
+        ? nextContent.trim().split(/\s+/).length
+        : 0
+
+      const nextStatus: "empty" | "draft" | "done" | "reviewed" =
+        current?.status === "done" || current?.status === "reviewed"
+          ? current.status
+          : "draft"
+
+      await updatePage(projectId, currentPage, {
+        content: nextContent,
+        status: nextStatus,
+        wordCount,
+      })
+
+      setProject((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          pages: (prev.pages ?? []).map((p) =>
+            p.pageNumber === currentPage
+              ? {
+                  ...p,
+                  content: nextContent,
+                  status: nextStatus,
+                  wordCount,
+                }
+              : p
+          ),
+        }
+      })
+    },
+    [currentPage, project, projectId]
+  )
 
   if (loading) {
     return (
@@ -137,6 +191,8 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
               projectId={projectId}
               pageNumber={currentPage}
               history={chatHistory}
+              enableInsertActions
+              onInsertText={handleInsertFromChat}
               onAppendMessages={(msgs) =>
                 setChatHistory((prev) => [...prev, ...msgs])
               }
@@ -190,6 +246,8 @@ export function ProjectEditor({ projectId }: ProjectEditorProps) {
             projectId={projectId}
             pageNumber={currentPage}
             history={chatHistory}
+            enableInsertActions
+            onInsertText={handleInsertFromChat}
             onAppendMessages={(msgs) =>
               setChatHistory((prev) => [...prev, ...msgs])
             }

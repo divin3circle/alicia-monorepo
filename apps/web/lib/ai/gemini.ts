@@ -9,6 +9,9 @@ export const GEMINI_LIVE_MODEL =
   process.env.GEMINI_LIVE_MODEL ??
   "gemini-2.5-flash-native-audio-preview-12-2025"
 
+export const GEMINI_IMAGE_MODEL =
+  process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image"
+
 function requireGeminiApiKey(): string {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {

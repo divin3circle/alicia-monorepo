@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import { useEffect, useState } from "react"
@@ -101,7 +102,7 @@ export function PageReview({
       <div className="mx-auto flex w-full max-w-lg animate-in flex-col gap-5 rounded-t-2xl bg-card p-6 shadow-2xl slide-in-from-bottom-4 sm:rounded-2xl sm:p-8 sm:slide-in-from-bottom-0">
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+          <p className="text-xs font-semibold tracking-wider text-foreground uppercase">
             Page {pageNumber} Complete 🎉
           </p>
           <h2 className="text-xl font-bold">Great work!</h2>
@@ -153,7 +154,7 @@ export function PageReview({
           </Button>
           <Button
             onClick={handleContinue}
-            className="flex-1 py-2 font-semibold"
+            className="flex-1 bg-foreground py-2 font-semibold text-background hover:bg-foreground/20"
           >
             {isLastPage
               ? "Finish Story 🎊"
