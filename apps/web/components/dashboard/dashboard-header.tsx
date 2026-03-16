@@ -2,20 +2,65 @@
 
 import { Sparkles, Search, Settings, Bell } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { PageEntry, StoryProject } from "@/lib/firestore"
+import { db } from "@/lib/firebase"
+import { query, collection, where, orderBy, getDocs } from "firebase/firestore"
+import { useEffect, useState } from "react"
+import { useAuth } from "@/lib/auth-context"
 
 interface DashboardHeaderProps {
   userName?: string
   photoURL?: string | null
-  storiesSaved?: number
   showUpgradePlan?: boolean
 }
 
 export function DashboardHeader({
   userName = "Creator",
   photoURL,
-  storiesSaved = 12,
   showUpgradePlan = true,
 }: DashboardHeaderProps) {
+  /**
+   * Fetch all projects that belong to a given user, ordered newest first.
+   */
+  async function getUserProjects(uid: string): Promise<StoryProject[]> {
+    const q = query(
+      collection(db, "projects"),
+      where("userId", "==", uid),
+      orderBy("createdAt", "desc")
+    )
+    const snap = await getDocs(q)
+    const defaultPages: PageEntry[] = Array.from({ length: 12 }, (_, i) => ({
+      pageNumber: i + 1,
+      content: "",
+      status: "empty" as const,
+      wordCount: 0,
+      updatedAt: null,
+    }))
+    return snap.docs.map((d) => {
+      const raw = d.data()
+      return {
+        id: d.id,
+        ...raw,
+        pages: raw.pages ?? defaultPages,
+        currentPage: raw.currentPage ?? 1,
+        pageFeedback: raw.pageFeedback ?? [],
+        chatHistory: raw.chatHistory ?? [],
+        voiceSessions: raw.voiceSessions ?? [],
+      } as StoryProject
+    })
+  }
+
+  const { user } = useAuth()
+  const [projects, setProjects] = useState<StoryProject[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+    getUserProjects(user.uid)
+      .then(setProjects)
+      .finally(() => setLoading(false))
+  }, [user])
+
   return (
     <div className="mb-8 flex items-start justify-between">
       {/* Left: Greeting */}
@@ -26,7 +71,7 @@ export function DashboardHeader({
         <p className="mt-1 text-sm text-slate-500">
           You&apos;ve crafted{" "}
           <span className="font-bold text-amber-500">
-            {storiesSaved} stories
+            {!loading && projects.length ? projects.length : "0"}
           </span>{" "}
           with Alicia AI so far!
         </p>
@@ -75,7 +120,7 @@ export function DashboardHeader({
             className="size-8 rounded-full object-cover shadow-md ring-2 ring-amber-500/30"
           />
         ) : (
-          <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-xs font-bold text-white shadow-md shadow-amber-500/25">
+          <div className="flex size-8 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-amber-600 text-xs font-bold text-white shadow-md shadow-amber-500/25">
             {userName.charAt(0).toUpperCase()}
           </div>
         )}

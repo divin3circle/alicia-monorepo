@@ -16,6 +16,7 @@ Alicia helps kids co-create stories with an AI writing coach, then generate page
 - Feature and requirement summary: [📃 Text Description](#-text-description)
 - Architecture view: [🏗️ Architecture Diagram](#️-architecture-diagram)
 - Google Cloud deployment proof: [🖥️ Proof of Google Cloud Deployment](#️-proof-of-google-cloud-deployment)
+- Reproducible judge testing: [🧪 Reproducible Testing Instructions](#-reproducible-testing-instructions)
 
 ---
 
@@ -212,3 +213,72 @@ flowchart TD
 - Shows app backend route logs while generating chat/image/live token.
 
 ---
+
+## 🧪 Reproducible Testing Instructions
+
+These steps let judges run Alicia locally and validate the core experience end-to-end.
+
+### Prerequisites
+
+- Node.js `>=20`
+- `pnpm@9`
+- A Firebase project configured for Auth, Firestore, and Storage
+- Gemini API key access
+
+### 1) Install dependencies
+
+From repo root:
+
+```bash
+pnpm install
+```
+
+### 2) Configure environment
+
+In `apps/web`, create `.env.local` and copy values from `.env.example`, then set your real credentials:
+
+- `GEMINI_API_KEY`
+- `GEMINI_TEXT_MODEL`
+- `GEMINI_LIVE_MODEL`
+- `REVIEW_ACCESS_CODE` (reviewer coupon)
+
+Also ensure Firebase client/admin env values required by your setup are present.
+
+### 3) Start the app
+
+From repo root:
+
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000`.
+
+### 4) Deterministic project checks (CLI)
+
+From repo root:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+Expected result: all commands succeed without errors.
+
+### 5) Manual acceptance checks (judge flow)
+
+1. Sign in and complete onboarding.
+1. In the final onboarding step, enter the reviewer code configured in `REVIEW_ACCESS_CODE`.
+1. Verify restricted routes are accessible with valid code.
+
+- `/creator`
+- `/ai`
+- `/assets`
+
+1. Sign out, create/login with an account that does **not** use the valid code.
+1. Verify restricted routes show the access-blocked screen, while `/dashboard` and `/marketplace` still work.
+1. In creator flow, generate story chat + at least one illustration and confirm persistence (Firestore/Storage).
+1. In voice mode, start and stop a live audio session successfully.
+
+This reproduces the main claims for Creative Storyteller + Live Agents tracks and validates reviewer access gating.

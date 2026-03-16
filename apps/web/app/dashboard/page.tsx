@@ -1,3 +1,4 @@
+/* eslint-disable no-extra-boolean-cast */
 "use client"
 
 import React from "react"
@@ -68,7 +69,6 @@ export default function Page() {
                 user?.displayName ?? user?.email?.split("@")[0] ?? "Creator"
               }
               photoURL={user?.photoURL}
-              storiesSaved={12}
               showUpgradePlan={showUpgradePlan}
             />
             <HeroStepper />
