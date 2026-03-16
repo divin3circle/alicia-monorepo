@@ -182,7 +182,7 @@ flowchart TD
 
 > Click thumbnail below to preview
 
-[![Firebase Video](thumbnail.png)](/firebase.mp4)
+[![Firebase Video](thumbnail.png)](https://drive.google.com/file/d/1Kr1nk9O3tFi-0msGhwL0dzPmbvQAZSea/view?usp=drive_link)
 
 - Shows Firebase project overview (project ID).
 - Shows Firestore documents updating during app usage.
@@ -192,6 +192,6 @@ flowchart TD
 ---
 
 <video controls width="640">
-  <source src="/firebase.mp4" type="video/mp4" />
+  <source src="https://drive.google.com/file/d/1Kr1nk9O3tFi-0msGhwL0dzPmbvQAZSea/view?usp=drive_link" type="video/mp4" />
   Your browser does not support the video tag.
 </video>
