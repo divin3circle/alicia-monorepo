@@ -182,7 +182,7 @@ flowchart TD
 
 > Click thumbnail below to preview
 
-[![Firebase Video](thumbnail.png)](/alicia-monorepo/firebase.mp4)
+[![Firebase Video](thumbnail.png)](/firebase.mp4)
 
 - Shows Firebase project overview (project ID).
 - Shows Firestore documents updating during app usage.
