@@ -33,6 +33,8 @@ export interface UserProfile {
   favoriteBook: string
   /** True once the 3-step onboarding wizard is completed */
   onboarded: boolean
+  /** Reviewer access flag enabled via onboarding coupon check */
+  freeTrial: boolean
   createdAt: ReturnType<typeof serverTimestamp> | null
   updatedAt: ReturnType<typeof serverTimestamp> | null
 }
@@ -44,7 +46,15 @@ export interface UserProfile {
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const ref = doc(db, "users", uid)
   const snap = await getDoc(ref)
-  return snap.exists() ? (snap.data() as UserProfile) : null
+  if (!snap.exists()) return null
+
+  const raw = snap.data() as Partial<UserProfile>
+
+  return {
+    ...(raw as UserProfile),
+    uid,
+    freeTrial: Boolean(raw.freeTrial),
+  }
 }
 
 /**
@@ -63,6 +73,7 @@ export async function saveUserProfile(
       ...profile,
       uid,
       onboarded: true,
+      freeTrial: Boolean(profile.freeTrial),
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(), // only written if the field is absent (merge)
     },

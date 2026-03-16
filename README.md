@@ -92,6 +92,22 @@ Alicia helps kids co-create stories with an AI writing coach, then generate page
 
 ---
 
+## Access Control for Reviewer Build
+
+To protect Gemini usage during judging/review windows, Alicia includes an onboarding access gate:
+
+- During the final onboarding step, users can enter a reviewer coupon code.
+- If the coupon is valid, the user profile is marked with `freeTrial: true`.
+- If the coupon is invalid or empty, `freeTrial` remains `false`.
+
+Access behavior:
+
+- **Allowed for everyone:** Dashboard, Marketplace.
+- **Restricted to approved reviewer accounts:** Creator Studio, Alicia AI, Assets, Notifications, Settings, and creator project routes.
+- Restricted users see a custom access-blocked screen explaining that this build is reviewer-limited.
+
+---
+
 ## Creative Storyteller Track Alignment ✍️
 
 - Alicia delivers multimodal storytelling by combining:
@@ -125,25 +141,25 @@ Key references:
 
 ```mermaid
 flowchart TD
-	U[User] --> FE[Next.js Frontend\nStory Editor + Voice + Illustrations]
+  U[User] --> FE[Next.js Frontend\nStory Editor + Voice + Illustrations]
 
-	FE -->|HTTP| CHAT[/API: /api/chat/]
-	FE -->|HTTP| ILLUS[/API: /api/ai/illustrate/]
-	FE -->|HTTP| LIVE[/API: /api/live/token/]
+  FE -->|HTTP| CHAT[/API: /api/chat/]
+  FE -->|HTTP| ILLUS[/API: /api/ai/illustrate/]
+  FE -->|HTTP| LIVE[/API: /api/live/token/]
 
-	CHAT --> GENAI[Google GenAI SDK\nGemini Text]
-	ILLUS --> GENAI_IMG[Google GenAI SDK\nGemini Image]
-	LIVE --> GEMINI_LIVE[Gemini Live API]
+  CHAT --> GENAI[Google GenAI SDK\nGemini Text]
+  ILLUS --> GENAI_IMG[Google GenAI SDK\nGemini Image]
+  LIVE --> GEMINI_LIVE[Gemini Live API]
 
-	FE --> FIRESTORE[(Firestore)]
-	ILLUS --> STORAGE[(Firebase Storage)]
-	ILLUS --> ADMIN[Firebase Admin SDK]
-	ADMIN --> STORAGE
+  FE --> FIRESTORE[(Firestore)]
+  ILLUS --> STORAGE[(Firebase Storage)]
+  ILLUS --> ADMIN[Firebase Admin SDK]
+  ADMIN --> STORAGE
 
-	FE --> FIREBASE_AI[Firebase AI SDK\nLive Audio Session]
-	FIREBASE_AI --> GEMINI_LIVE
+  FE --> FIREBASE_AI[Firebase AI SDK\nLive Audio Session]
+  FIREBASE_AI --> GEMINI_LIVE
 
-	FE --> AUTH[Firebase Auth]
+  FE --> AUTH[Firebase Auth]
 ```
 
 ---
@@ -164,7 +180,9 @@ flowchart TD
 
 **Google cloud service screen recording:**
 
-[![Firebase Video](thumbnail.png)](/firebase.mov)
+> Click thumbnail below to preview
+
+[![Firebase Video](thumbnail.png)](/alicia-monorepo/firebase.mp4)
 
 - Shows Firebase project overview (project ID).
 - Shows Firestore documents updating during app usage.

@@ -1,15 +1,15 @@
-"use client";
+"use client"
 
-import { useParams } from "next/navigation";
-import { ProfileGuard } from "@/components/auth/profile-guard";
-import { ProjectEditor } from "@/components/creator/project-editor";
+import { useParams } from "next/navigation"
+import { RestrictedAccessGuard } from "@/components/auth/restricted-access-guard"
+import { ProjectEditor } from "@/components/creator/project-editor"
 
 export default function CreatorProjectPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>()
 
   return (
-    <ProfileGuard>
+    <RestrictedAccessGuard areaLabel="Creator Studio">
       <ProjectEditor projectId={id} />
-    </ProfileGuard>
-  );
+    </RestrictedAccessGuard>
+  )
 }
