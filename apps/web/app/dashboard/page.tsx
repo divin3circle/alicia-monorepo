@@ -14,9 +14,26 @@ import {
 import { Separator } from "@workspace/ui/components/separator";
 import { useAuth } from "@/lib/auth-context";
 import { ProfileGuard } from "@/components/auth/profile-guard";
+import { getUserProfile } from "@/lib/firestore";
 
 export default function Page() {
   const { user } = useAuth();
+  const [showUpgradePlan, setShowUpgradePlan] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user) {
+      setShowUpgradePlan(false);
+      return;
+    }
+
+    getUserProfile(user.uid)
+      .then((profile) => {
+        setShowUpgradePlan(!Boolean(profile?.freeTrial));
+      })
+      .catch(() => {
+        setShowUpgradePlan(false);
+      });
+  }, [user]);
 
   return (
     <ProfileGuard>
@@ -48,6 +65,7 @@ export default function Page() {
             userName={user?.displayName ?? user?.email?.split("@")[0] ?? "Creator"}
             photoURL={user?.photoURL}
             storiesSaved={12}
+            showUpgradePlan={showUpgradePlan}
           />
           <HeroStepper />
           <QuickActions />

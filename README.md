@@ -168,13 +168,13 @@ flowchart TD
 
 ### Code proof (Google Cloud/Firebase service usage)
 
-- Firebase app/auth/db setup: [alicia-monorepo/apps/web/lib/firebase.ts](alicia-monorepo/apps/web/lib/firebase.ts)
-- Firestore reads/writes for projects: [alicia-monorepo/apps/web/lib/firestore.ts](alicia-monorepo/apps/web/lib/firestore.ts)
-- Firebase Admin SDK storage access: [alicia-monorepo/apps/web/lib/firebase-admin.ts](alicia-monorepo/apps/web/lib/firebase-admin.ts)
+- Firebase app/auth/db setup: [apps/web/lib/firebase.ts](alicia-monorepo/apps/web/lib/firebase.ts)
+- Firestore reads/writes for projects: [apps/web/lib/firestore.ts](alicia-monorepo/apps/web/lib/firestore.ts)
+- Firebase Admin SDK storage access: [apps/web/lib/firebase-admin.ts](alicia-monorepo/apps/web/lib/firebase-admin.ts)
 - Gemini + live endpoints running in backend routes:
-  - [alicia-monorepo/apps/web/app/api/chat/route.ts](alicia-monorepo/apps/web/app/api/chat/route.ts)
-  - [alicia-monorepo/apps/web/app/api/ai/illustrate/route.ts](alicia-monorepo/apps/web/app/api/ai/illustrate/route.ts)
-  - [alicia-monorepo/apps/web/app/api/live/token/route.ts](alicia-monorepo/apps/web/app/api/live/token/route.ts)
+  - [apps/web/app/api/chat/route.ts](alicia-monorepo/apps/web/app/api/chat/route.ts)
+  - [apps/web/app/api/ai/illustrate/route.ts](alicia-monorepo/apps/web/app/api/ai/illustrate/route.ts)
+  - [apps/web/app/api/live/token/route.ts](alicia-monorepo/apps/web/app/api/live/token/route.ts)
 
 ### Video proof
 
@@ -190,8 +190,3 @@ flowchart TD
 - Shows app backend route logs while generating chat/image/live token.
 
 ---
-
-<video controls width="640">
-  <source src="https://drive.google.com/file/d/1Kr1nk9O3tFi-0msGhwL0dzPmbvQAZSea/view?usp=drive_link" type="video/mp4" />
-  Your browser does not support the video tag.
-</video>

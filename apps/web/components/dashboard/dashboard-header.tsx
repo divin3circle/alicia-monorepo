@@ -7,9 +7,15 @@ interface DashboardHeaderProps {
   userName?: string
   photoURL?: string | null
   storiesSaved?: number
+  showUpgradePlan?: boolean
 }
 
-export function DashboardHeader({ userName = "Creator", photoURL, storiesSaved = 12 }: DashboardHeaderProps) {
+export function DashboardHeader({
+  userName = "Creator",
+  photoURL,
+  storiesSaved = 12,
+  showUpgradePlan = true,
+}: DashboardHeaderProps) {
   return (
     <div className="flex items-start justify-between mb-8">
       {/* Left: Greeting */}
@@ -26,14 +32,16 @@ export function DashboardHeader({ userName = "Creator", photoURL, storiesSaved =
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 shrink-0">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 font-semibold"
-        >
-          <Sparkles className="size-3.5" />
-          Upgrade Plan
-        </Button>
+        {showUpgradePlan ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 font-semibold"
+          >
+            <Sparkles className="size-3.5" />
+            Upgrade Plan
+          </Button>
+        ) : null}
         <Button variant="ghost" size="icon-sm" className="text-slate-500 hover:text-slate-900">
           <Search className="size-4" />
         </Button>
