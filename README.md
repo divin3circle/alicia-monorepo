@@ -190,3 +190,8 @@ flowchart TD
 - Shows app backend route logs while generating chat/image/live token.
 
 ---
+
+<video controls width="640">
+  <source src="/firebase.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
