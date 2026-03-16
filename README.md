@@ -168,13 +168,13 @@ flowchart TD
 
 ### Code proof (Google Cloud/Firebase service usage)
 
-- Firebase app/auth/db setup: [apps/web/lib/firebase.ts](alicia-monorepo/apps/web/lib/firebase.ts)
-- Firestore reads/writes for projects: [apps/web/lib/firestore.ts](alicia-monorepo/apps/web/lib/firestore.ts)
-- Firebase Admin SDK storage access: [apps/web/lib/firebase-admin.ts](alicia-monorepo/apps/web/lib/firebase-admin.ts)
+- Firebase app/auth/db setup: [apps/web/lib/firebase.ts](apps/web/lib/firebase.ts)
+- Firestore reads/writes for projects: [apps/web/lib/firestore.ts](apps/web/lib/firestore.ts)
+- Firebase Admin SDK storage access: [apps/web/lib/firebase-admin.ts](apps/web/lib/firebase-admin.ts)
 - Gemini + live endpoints running in backend routes:
-  - [apps/web/app/api/chat/route.ts](alicia-monorepo/apps/web/app/api/chat/route.ts)
-  - [apps/web/app/api/ai/illustrate/route.ts](alicia-monorepo/apps/web/app/api/ai/illustrate/route.ts)
-  - [apps/web/app/api/live/token/route.ts](alicia-monorepo/apps/web/app/api/live/token/route.ts)
+  - [apps/web/app/api/chat/route.ts](apps/web/app/api/chat/route.ts)
+  - [apps/web/app/api/ai/illustrate/route.ts](apps/web/app/api/ai/illustrate/route.ts)
+  - [apps/web/app/api/live/token/route.ts](apps/web/app/api/live/token/route.ts)
 
 ### Video proof
 

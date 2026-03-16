@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   Video,
@@ -12,6 +13,7 @@ import {
   Store,
   Hexagon,
   Plus,
+  LogOut,
 } from "lucide-react"
 
 import {
@@ -70,9 +72,10 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter()
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const [projects, setProjects] = React.useState<StoryProject[]>([])
 
   React.useEffect(() => {
@@ -85,6 +88,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       .then((items) => setProjects(items.slice(0, 3)))
       .catch(() => setProjects([]))
   }, [user])
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      router.replace("/")
+    } catch (error) {
+      console.error("[AppSidebar] logout failed", error)
+    }
+  }
 
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
@@ -189,6 +201,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Log out" onClick={handleLogout}>
+                <LogOut className="size-4" />
+                <span>Log out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
