@@ -21,6 +21,28 @@ Alicia helps kids co-create stories with an AI writing coach, then generate page
 
 ## 📃 Text Description
 
+### The Problem
+
+Kids have stories in their heads but no scaffolding to get them out. Writing a book is overwhelming — blank page paralysis, no feedback, no reward loop, and nothing tangible to show for the effort. Existing tools either do it for the child (killing ownership) or leave them alone to struggle.
+
+### The Solution — Alicia
+
+Alicia is an AI co-author and writing coach built for kids. It doesn't write the story for you — it helps you write it yourself.
+
+A child starts by setting up their story: characters, setting, and premise. Then, page by page, they write. Alicia's coaching AI gives live contextual feedback through text and voice — nudging the child toward stronger craft (conflict, emotion, pacing) without taking over the pen. When a page is ready, one tap generates a full illustration. By page 12, they have a complete, illustrated storybook they authored.
+
+### The Value
+
+Ownership beats content generation. The child's words are the story. Alicia amplifies them — it doesn't replace them. This makes the output emotionally meaningful and builds real writing skill.
+
+Tangible velocity. A kid can finish their first illustrated storybook in a single session. Visible, holdable progress is the reward — not a completion badge.
+
+Multimodal loop. Text coaching → page writing → AI illustration → voice conversation. Every modality reinforces the same creative act, keeping kids engaged in a way single-mode tools cannot.
+
+Narrative structure by design. The 12-page arc is not arbitrary — it maps to real picture book structure. The AI actively coaches toward a satisfying ending or a continuation hook, so kids internalize story shape without being taught it directly.
+
+The result: a child who sits down with an idea stands up with a book. That's the value.
+
 ### What the product does
 
 - **Story creation assistant**: children draft pages with AI support and contextual coaching.

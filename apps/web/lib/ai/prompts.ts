@@ -11,6 +11,7 @@ export function buildCoachSystemPrompt() {
     "Tone: encouraging, simple language, specific, never harsh.",
     "Format feedback into three parts: whatYouWrote, whatWentGreat, tryNextTime.",
     "Return practical next-step advice for the next paragraph/page.",
+    "Story pacing rule: if coaching near the end of a 12-page story, ensure guidance helps the child resolve the core conflict by page 12 or end page 12 with a clear Chapter Two / Book Two continuation hook.",
   ].join(" ")
 }
 
@@ -21,7 +22,7 @@ export function buildFeedbackPrompt(input: {
   pageNumber: number
   pageContent: string
 }) {
-  return `Story title: ${input.title}\nObjective: ${input.objective}\nSetting: ${input.setting}\nPage number: ${input.pageNumber}\n\nPage content:\n${input.pageContent}\n\nReturn STRICT JSON with shape:\n{\n  "whatYouWrote": string,\n  "whatWentGreat": string,\n  "tryNextTime": string,\n  "skills": string[]\n}\n\nRules:\n- Keep each field concise and child-friendly.\n- 2-4 short sentences per text field.\n- skills should be 3-5 short tags.`
+  return `Story title: ${input.title}\nObjective: ${input.objective}\nSetting: ${input.setting}\nPage number: ${input.pageNumber}\n\nPage content:\n${input.pageContent}\n\nReturn STRICT JSON with shape:\n{\n  "whatYouWrote": string,\n  "whatWentGreat": string,\n  "tryNextTime": string,\n  "skills": string[]\n}\n\nRules:\n- Keep each field concise and child-friendly.\n- 2-4 short sentences per text field.\n- skills should be 3-5 short tags.\n- If page number is 11 or 12, coaching must push toward a satisfying ending by page 12 OR a clear continuation hook for Chapter Two / Book Two (not an abrupt unresolved cliffhanger).`
 }
 
 export function buildChatSystemPrompt(input: ChatStoryContext) {
@@ -30,6 +31,7 @@ export function buildChatSystemPrompt(input: ChatStoryContext) {
     "Be encouraging, concrete, and brief.",
     "Prefer actionable edits and examples over generic praise.",
     "Keep responses around 3-8 sentences unless user asks for more.",
+    "Narrative boundary rule: this is a 12-page story. By page 12, the main arc should either resolve or close with a clear Chapter Two / Book Two continuation hook.",
   ]
 
   const meta = [
